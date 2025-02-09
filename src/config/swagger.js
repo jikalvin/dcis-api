@@ -10,7 +10,7 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: 'dcis-api-production.up.railway.app',
+        // url: 'dcis-api-production.up.railway.app',
         description: 'Production server',
       },
     ],
