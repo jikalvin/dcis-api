@@ -13,6 +13,11 @@ const parentRoutes = require('./routes/parent');
 const classRoutes = require('./routes/class');
 const settingsRoutes = require('./routes/settings');
 const subjectRoutes = require('./routes/subject');
+const servicesRoutes = require('./routes/services');
+const tuitionRoutes = require('./routes/tuition');
+const examRoutes = require('./routes/exam');
+const notificationRoutes = require('./routes/notifications');
+const supportRoutes = require('./routes/support');
 const createDefaultSuperAdmin = require('./config/defaultAdmin');
 const cors = require('cors');
 
@@ -43,6 +48,11 @@ app.use('/api/settings', settingsRoutes);
 app.use('/api/programs', programRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/subjects', subjectRoutes);
+app.use('/api/services', servicesRoutes);
+app.use('/api/tuition', tuitionRoutes);
+app.use('/api/exam', examRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/support', supportRoutes);
 
 // Create default super admin account
 createDefaultSuperAdmin();
