@@ -13,6 +13,10 @@ const swaggerOptions = {
         url: 'https://dcis-api-production.up.railway.app/',
         description: 'Production server',
       },
+      {
+        url: 'http://localhost:5000',
+        description: 'Development server',
+      },
     ],
   },
   apis: ['./src/routes/*.js', './src/swagger.js'],

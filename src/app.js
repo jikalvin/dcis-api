@@ -14,11 +14,14 @@ const classRoutes = require('./routes/class');
 const settingsRoutes = require('./routes/settings');
 const subjectRoutes = require('./routes/subject');
 const createDefaultSuperAdmin = require('./config/defaultAdmin');
+const cors = require('cors');
 
 dotenv.config();
 
 // Initialize express app
 const app = express();
+
+app.use(cors());
 
 // Swagger UI setup
 app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerDocs));
