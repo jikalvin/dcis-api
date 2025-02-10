@@ -55,7 +55,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/support', supportRoutes);
 
 // Create default super admin account
-createDefaultSuperAdmin();
+// createDefaultSuperAdmin();
 
 // Error handling middleware
 app.use((err, req, res, next) => {
