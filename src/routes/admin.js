@@ -259,6 +259,7 @@ router.post('/verify', auth, authorize('superadmin'), async (req, res) => {
 router.post('/resend-code', auth, authorize('superadmin'), async (req, res) => {
   try {
     const { institutionId } = req.body;
+    console.log("The institutionId is: ", institutionId);
     const admin = await User.findOne({ institutionId });
 
     if (!admin) {
