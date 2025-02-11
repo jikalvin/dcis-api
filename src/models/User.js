@@ -60,7 +60,8 @@ const userSchema = new mongoose.Schema({
   },
   programs: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Program'
+    ref: 'Program',
+    required: false
   }],
 }, {
   timestamps: true
