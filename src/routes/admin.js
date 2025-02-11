@@ -95,7 +95,108 @@ router.get('/:id', auth, authorize('superadmin'), async (req, res) => {
 });
 
 
-// Create new administrator
+/**
+ * @swagger
+ * /api/admin:
+ *   post:
+ *     tags: [Admin]
+ *     summary: Add new administrator
+ *     description: Create a new administrator account with comprehensive details
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - fullName.firstName
+ *               - fullName.lastName
+ *               - email
+ *               - password
+ *               - sex
+ *             properties:
+ *               role:
+ *                 type: string
+ *                 default: admin
+ *               programIds:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               fullName:
+ *                 type: object
+ *                 properties:
+ *                   firstName:
+ *                     type: string
+ *                   middleName:
+ *                     type: string
+ *                   lastName:
+ *                     type: string
+ *               phone:
+ *                 type: object
+ *                 properties:
+ *                   dailCode:
+ *                     type: string
+ *                     default: '+237'
+ *                   number:
+ *                     type: number
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               sex:
+ *                 type: string
+ *                 enum: ['male', 'female', 'other']
+ *               nationality:
+ *                 type: string
+ *               address:
+ *                 type: string
+ *               dob:
+ *                 type: string
+ *                 format: date
+ *               password:
+ *                 type: string
+ *               profileImage:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       201:
+ *         description: Administrator account created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 admin:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     firstName:
+ *                       type: string
+ *                     lastName:
+ *                       type: string
+ *                     email:
+ *                       type: string
+ *                     institutionId:
+ *                       type: string
+ *                     role:
+ *                       type: string
+ *                     programs:
+ *                       type: array
+ *                       items:
+ *                         type: string
+ *                     profileImage:
+ *                       type: string
+ *       400:
+ *         description: Validation error
+ *       403:
+ *         description: Not authorized
+ *       500:
+ *         description: Server error
+ */
 router.post('/', 
   auth, 
   authorize('superadmin'), 

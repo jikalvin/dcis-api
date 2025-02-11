@@ -58,6 +58,10 @@ const userSchema = new mongoose.Schema({
   profileImage: {
     type: String
   },
+  programs: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Program'
+  }],
 }, {
   timestamps: true
 });
