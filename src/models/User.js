@@ -43,10 +43,6 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
-  programs: [{
-    type: String,
-    enum: ['Creche', 'Kindergarten', 'Primary', 'Secondary', 'High School']
-  }],
   nationality: String,
   dateOfBirth: Date,
   gender: {
