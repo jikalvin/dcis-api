@@ -43,6 +43,10 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  programs: [{
+    type: String,
+    enum: ['Creche', 'Kindergarten', 'Primary', 'Secondary', 'High School']
+  }],
   nationality: String,
   dateOfBirth: Date,
   gender: {
@@ -54,11 +58,6 @@ const userSchema = new mongoose.Schema({
   profileImage: {
     type: String
   },
-  programs: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Program',
-    required: false
-  }],
 }, {
   timestamps: true
 });
