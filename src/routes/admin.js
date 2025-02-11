@@ -215,6 +215,7 @@ router.post('/',
         dob, 
         password 
       } = req.body;
+      console.log("The role is: ", req.body);
 
       // Generate institution ID
       const institutionId = `DCIS${new Date().getFullYear()}${Date.now().toString().slice(-4)}`;
