@@ -6,142 +6,373 @@ const { auth, authorize } = require('../middleware/auth');
 const bcrypt = require('bcryptjs');
 
 /**
- * @route GET /
- * @group Settings - Operations related to system settings
- * @security superadmin
- * @returns {object} 200 - System settings retrieved successfully
- * @returns {object} 500 - Internal server error
+ * @swagger
+ * tags:
+ *   - name: Settings
+ *     description: Operations related to system settings
  */
 
 /**
- * @route PUT /email
- * @group Settings - Operations related to system settings
- * @param {string} host.body.required - Email host
- * @param {number} port.body.required - Email port
- * @param {string} username.body.required - Email username
- * @param {string} password.body.required - Email password
- * @param {string} from.body.required - Email from address
- * @security superadmin
- * @returns {object} 200 - Email settings updated successfully
- * @returns {object} 500 - Internal server error
+ * @swagger
+ * /api/settings:
+ *   get:
+ *     tags: [Settings]
+ *     summary: Get system settings
+ *     description: Retrieve system settings
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: System settings retrieved successfully
+ *       500:
+ *         description: Internal server error
  */
 
 /**
- * @route PUT /academic-year
- * @group Settings - Operations related to academic year
- * @param {string} academicYear.body.required - The academic year to set
- * @security superadmin
- * @returns {object} 200 - Academic year updated successfully
- * @returns {object} 500 - Internal server error
+ * @swagger
+ * /api/settings/email:
+ *   put:
+ *     tags: [Settings]
+ *     summary: Update email settings
+ *     description: Update the email settings for the system
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               host:
+ *                 type: string
+ *               port:
+ *                 type: number
+ *               username:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               from:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Email settings updated successfully
+ *       500:
+ *         description: Internal server error
  */
 
 /**
- * @route PUT /change-password
- * @group Settings - Operations related to user management
- * @param {string} currentPassword.body.required - Current password
- * @param {string} newPassword.body.required - New password
- * @security superadmin
- * @returns {object} 200 - Password updated successfully
- * @returns {object} 400 - Current password is incorrect
- * @returns {object} 500 - Internal server error
+ * @swagger
+ * /api/settings/academic-year:
+ *   put:
+ *     tags: [Settings]
+ *     summary: Update academic year
+ *     description: Update the current academic year
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               academicYear:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Academic year updated successfully
+ *       500:
+ *         description: Internal server error
  */
 
 /**
- * @route GET /audit-logs
- * @group Settings - Operations related to system audit logs
- * @security superadmin
- * @returns {object} 200 - Audit logs retrieved successfully
- * @returns {object} 500 - Internal server error
+ * @swagger
+ * /api/settings/change-password:
+ *   put:
+ *     tags: [Settings]
+ *     summary: Change super admin password
+ *     description: Change the password for the super admin
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               currentPassword:
+ *                 type: string
+ *               newPassword:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Password updated successfully
+ *       400:
+ *         description: Current password is incorrect
+ *       500:
+ *         description: Internal server error
  */
 
 /**
- * @route PUT /branding
- * @group Settings - Operations related to branding
- * @param {string} logo.body.required - Logo URL
- * @param {string} systemColor.body.required - System color
- * @security superadmin
- * @returns {object} 200 - Branding settings updated successfully
- * @returns {object} 404 - Settings not found
- * @returns {object} 500 - Internal server error
+ * @swagger
+ * /api/settings/audit-logs:
+ *   get:
+ *     tags: [Settings]
+ *     summary: Get system audit logs
+ *     description: Retrieve system audit logs
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Audit logs retrieved successfully
+ *       500:
+ *         description: Internal server error
  */
 
 /**
- * @route PUT /general
- * @group Settings - Operations related to general settings
- * @param {string} schoolName.body.required - Name of the school
- * @param {string} address.body.required - Address of the school
- * @param {string} phone.body.required - Phone number of the school
- * @param {string} email.body.required - Email of the school
- * @security superadmin
- * @returns {object} 200 - General settings updated successfully
- * @returns {object} 404 - Settings not found
- * @returns {object} 500 - Internal server error
+ * @swagger
+ * /api/settings/branding:
+ *   put:
+ *     tags: [Settings]
+ *     summary: Update branding settings
+ *     description: Update the branding settings for the system
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               logo:
+ *                 type: string
+ *               systemColor:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Branding settings updated successfully
+ *       404:
+ *         description: Settings not found
+ *       500:
+ *         description: Internal server error
  */
 
 /**
- * @route PUT /security
- * @group Settings - Operations related to security settings
- * @param {boolean} twoFactorEnabled.body.required - Enable or disable two-factor authentication
- * @security superadmin
- * @returns {object} 200 - Security settings updated successfully
- * @returns {object} 404 - Settings not found
- * @returns {object} 500 - Internal server error
+ * @swagger
+ * /api/settings/general:
+ *   put:
+ *     tags: [Settings]
+ *     summary: Update general settings
+ *     description: Update general settings for the system
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               schoolName:
+ *                 type: string
+ *               address:
+ *                 type: string
+ *               phone:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: General settings updated successfully
+ *       404:
+ *         description: Settings not found
+ *       500:
+ *         description: Internal server error
  */
 
 /**
- * @route PUT /permissions
- * @group Settings - Operations related to permissions
- * @param {object} permissions.body.required - Permissions object
- * @security superadmin
- * @returns {object} 200 - Permissions updated successfully
- * @returns {object} 404 - Settings not found
- * @returns {object} 500 - Internal server error
+ * @swagger
+ * /api/settings/security:
+ *   put:
+ *     tags: [Settings]
+ *     summary: Update security settings
+ *     description: Update security settings for the system
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               twoFactorEnabled:
+ *                 type: boolean
+ *     responses:
+ *       200:
+ *         description: Security settings updated successfully
+ *       404:
+ *         description: Settings not found
+ *       500:
+ *         description: Internal server error
  */
 
 /**
- * @route POST /academic/years
- * @group Academic - Operations related to academic years
- * @param {string} name.body.required - The name of the academic year
- * @param {string} startDate.body.required - The start date of the academic year
- * @param {string} endDate.body.required - The end date of the academic year
- * @param {Array} terms.body.required - The terms within the academic year
- * @security superadmin
- * @returns {object} 201 - Academic year created successfully
- * @returns {object} 404 - Settings not found
- * @returns {object} 500 - Internal server error
+ * @swagger
+ * /api/settings/permissions:
+ *   put:
+ *     tags: [Settings]
+ *     summary: Update permissions
+ *     description: Update permissions for the system
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               permissions:
+ *                 type: object
+ *     responses:
+ *       200:
+ *         description: Permissions updated successfully
+ *       404:
+ *         description: Settings not found
+ *       500:
+ *         description: Internal server error
  */
 
 /**
- * @route PUT /academic/grading
- * @group Academic - Operations related to grading scales
- * @param {string} program.body.required - The academic program
- * @param {Array} scales.body.required - The grading scales
- * @security superadmin
- * @returns {object} 200 - Grading scales updated successfully
- * @returns {object} 404 - Settings not found
- * @returns {object} 500 - Internal server error
+ * @swagger
+ * /api/settings/academic/years:
+ *   post:
+ *     tags: [Settings]
+ *     summary: Create academic year
+ *     description: Create a new academic year
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               startDate:
+ *                 type: string
+ *                 format: date
+ *               endDate:
+ *                 type: string
+ *                 format: date
+ *               terms:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *     responses:
+ *       201:
+ *         description: Academic year created successfully
+ *       404:
+ *         description: Settings not found
+ *       500:
+ *         description: Internal server error
  */
 
 /**
- * @route PUT /academic/report-theme
- * @group Academic - Operations related to report card themes
- * @param {string} backgroundColor.body.required - Background color of the report card
- * @param {string} textColor.body.required - Text color of the report card
- * @param {string} accentColor.body.required - Accent color of the report card
- * @security superadmin
- * @returns {object} 200 - Report card theme updated successfully
- * @returns {object} 404 - Settings not found
- * @returns {object} 500 - Internal server error
+ * @swagger
+ * /api/settings/academic/grading:
+ *   put:
+ *     tags: [Settings]
+ *     summary: Update grading scales
+ *     description: Update grading scales for an academic program
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               program:
+ *                 type: string
+ *               scales:
+ *                 type: array
+ *                 items:
+ *                   type: number
+ *     responses:
+ *       200:
+ *         description: Grading scales updated successfully
+ *       404:
+ *         description: Settings not found
+ *       500:
+ *         description: Internal server error
  */
 
 /**
- * @route PUT /payment/methods
- * @group Payment - Operations related to payment methods
- * @param {Array} methods.body.required - Payment methods
- * @security superadmin
- * @returns {object} 200 - Payment methods updated successfully
- * @returns {object} 404 - Settings not found
- * @returns {object} 500 - Internal server error
+ * @swagger
+ * /api/settings/academic/report-theme:
+ *   put:
+ *     tags: [Settings]
+ *     summary: Update report card theme
+ *     description: Update the theme for report cards
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               backgroundColor:
+ *                 type: string
+ *               textColor:
+ *                 type: string
+ *               accentColor:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Report card theme updated successfully
+ *       404:
+ *         description: Settings not found
+ *       500:
+ *         description: Internal server error
+ */
+
+/**
+ * @swagger
+ * /api/settings/payment/methods:
+ *   put:
+ *     tags: [Settings]
+ *     summary: Update payment methods
+ *     description: Update the payment methods for the system
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               methods:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *     responses:
+ *       200:
+ *         description: Payment methods updated successfully
+ *       404:
+ *         description: Settings not found
+ *       500:
+ *         description: Internal server error
  */
 
 // Get system settings
