@@ -54,7 +54,10 @@ const userSchema = new mongoose.Schema({
     enum: ['male', 'female', 'other']
   },
   contact: String,
-  address: String
+  address: String,
+  profileImage: {
+    type: String
+  },
 }, {
   timestamps: true
 });

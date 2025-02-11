@@ -4,6 +4,8 @@ const User = require('../models/User');
 const { auth, authorize } = require('../middleware/auth');
 const sendEmail = require('../utils/email');
 const crypto = require('crypto');
+const uploadToCloudinary = require('../utils/cloudinary');
+const upload = require('../middleware/fileUpload');
 
 /**
  * @swagger
@@ -92,77 +94,96 @@ router.get('/:id', auth, authorize('superadmin'), async (req, res) => {
   }
 });
 
-// Add new administrator
-/**
- * @swagger
- * /api/admin:
- *   post:
- *     tags: [Admin]
- *     summary: Add new administrator
- *     description: Create a new administrator account
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - firstName
- *               - lastName
- *               - email
- *             properties:
- *               firstName:
- *                 type: string
- *               lastName:
- *                 type: string
- *               email:
- *                 type: string
- *                 format: email
- *     responses:
- *       201:
- *         description: Administrator account created successfully
- *       403:
- *         description: Not authorized
- *       500:
- *         description: Server error
- */
-router.post('/', auth, authorize('superadmin'), async (req, res) => {
-  try {
-    const password = crypto.randomBytes(8).toString('hex');
-    const institutionId = `DCIS${new Date().getFullYear()}${Date.now().toString().slice(-4)}`;
-    const verificationCode = crypto.randomBytes(3).toString('hex');
 
-    const adminData = {
-      ...req.body,
-      role: 'admin',
-      password,
-      institutionId,
-      verificationCode,
-      verificationCodeExpires: Date.now() + 24 * 60 * 60 * 1000 // 24 hours
-    };
+// Create new administrator
+router.post('/', 
+  auth, 
+  authorize('superadmin'), 
+  upload.single('profileImage'), 
+  async (req, res) => {
+    try {
+      const { 
+        role, 
+        programIds, 
+        fullName, 
+        phone, 
+        email, 
+        sex, 
+        nationality, 
+        address, 
+        dob, 
+        password 
+      } = req.body;
 
-    const admin = new User(adminData);
-    await admin.save();
+      // Generate institution ID
+      const institutionId = `DCIS${new Date().getFullYear()}${Date.now().toString().slice(-4)}`;
+      const verificationCode = crypto.randomBytes(3).toString('hex');
 
-    // Send verification code via email
-    await sendEmail({
-      email: admin.email,
-      subject: 'Account Verification',
-      message: `Your verification code is: ${verificationCode}
-      Your institution ID is: ${institutionId}
-      Your temporary password is: ${password}
-      Please change your password after first login.`
-    });
+      // Handle profile image upload
+      let cloudinaryResult = null;
+      if (req.file) {
+        cloudinaryResult = await uploadToCloudinary(req.file.path, 'administrators');
+      }
 
-    res.status(201).json({
-      message: 'Administrator account created successfully. Credentials sent to email.'
-    });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+      // Prepare admin data
+      const adminData = {
+        firstName: fullName.firstName,
+        middleName: fullName.middleName || '',
+        lastName: fullName.lastName,
+        email,
+        password,
+        role: role || 'admin',
+        institutionId,
+        verificationCode,
+        verificationCodeExpires: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
+        programs: programIds || [],
+        nationality,
+        dateOfBirth: dob,
+        gender: sex,
+        contact: `${phone.dailCode}${phone.number}`,
+        address,
+        profileImage: cloudinaryResult ? cloudinaryResult.secure_url : null,
+        isVerified: false
+      };
+
+      // Create new user
+      const admin = new User(adminData);
+      await admin.save();
+
+      // Send verification email
+      await sendEmail({
+        email: admin.email,
+        subject: 'Account Verification',
+        message: `Your verification code is: ${verificationCode}
+        Your institution ID is: ${institutionId}
+        Please verify your account and change your password.`
+      });
+
+      // Prepare response
+      const responseAdmin = {
+        id: admin._id,
+        firstName: admin.firstName,
+        lastName: admin.lastName,
+        email: admin.email,
+        institutionId: admin.institutionId,
+        role: admin.role,
+        programs: admin.programs,
+        profileImage: admin.profileImage
+      };
+
+      res.status(201).json({
+        message: 'Administrator account created successfully. Verification code sent to email.',
+        admin: responseAdmin
+      });
+    } catch (error) {
+      console.error('Admin creation error:', error);
+      res.status(500).json({ 
+        error: 'Failed to create administrator', 
+        details: error.message 
+      });
+    }
   }
-});
+);
 
 // Verify administrator account
 /**
