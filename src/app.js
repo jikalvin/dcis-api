@@ -41,7 +41,7 @@ app.use(express.urlencoded({ extended: true }));
 // Routes
 app.use('/api/super-admin', superAdminRoutes);
 app.use('/api/admin', adminRoutes);
-app.use('/api/teacher', teacherRoutes);
+app.use('/api/teachers', teacherRoutes);
 app.use('/api/parent', parentRoutes);
 app.use('/api/class', classRoutes);
 app.use('/api/settings', settingsRoutes);
