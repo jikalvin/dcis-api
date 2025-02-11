@@ -443,9 +443,9 @@ router.post('/verify-account', async (req, res) => {
  *           schema:
  *             type: object
  *             required:
- *               - email
+ *               - institutionId
  *             properties:
- *               email:
+ *               institutionId:
  *                 type: string
  *     responses:
  *       200:
@@ -457,8 +457,8 @@ router.post('/verify-account', async (req, res) => {
  */
 router.post('/resend-code', async (req, res) => {
   try {
-    const { email } = req.body;
-    const user = await User.findOne({ email, role: 'superadmin' });
+    const { institutionId } = req.body;
+    const user = await User.findOne({ institutionId, role: 'superadmin' });
 
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
