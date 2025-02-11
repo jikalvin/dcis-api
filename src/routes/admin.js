@@ -258,8 +258,8 @@ router.post('/verify', auth, authorize('superadmin'), async (req, res) => {
  */
 router.post('/resend-code', auth, authorize('superadmin'), async (req, res) => {
   try {
-    const { email } = req.body;
-    const admin = await User.findOne({ email, role: 'admin' });
+    const { institutionId } = req.body;
+    const admin = await User.findOne({ institutionId });
 
     if (!admin) {
       return res.status(404).json({ error: 'Administrator not found' });
