@@ -519,4 +519,56 @@ router.put('/:id/timetable', auth, authorize('superadmin', 'admin'), async (req,
   }
 });
 
+/**
+ * @swagger
+ * /api/teachers/sorted:
+ *   get:
+ *     tags: [Teachers]
+ *     summary: Get all teachers sorted by programs
+ *     description: Retrieve a list of all teachers sorted by their respective programs
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: A list of teachers sorted by their respective programs
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                   firstName:
+ *                     type: string
+ *                   lastName:
+ *                     type: string
+ *                   email:
+ *                     type: string
+ *                   institutionId:
+ *                     type: string
+ *                   role:
+ *                     type: string
+ *       500:
+ *         description: Server error
+ */
+router.get('/sorted', auth, authorize('superadmin', 'admin'), async (req, res) => {
+  try {
+    // Fetch all teachers
+    const teachers = await User.find({ role: 'teacher' });
+
+    // Sort teachers by their programs
+    const sortedTeachers = teachers.sort((a, b) => {
+      // Assuming each teacher has a programs array and we want to sort by the first program
+      return (a.programs[0] || '').localeCompare(b.programs[0] || '');
+    });
+
+    res.status(200).json(sortedTeachers);
+  } catch (error) {
+    console.error('Error retrieving teachers:', error);
+    res.status(500).json({ error: 'Failed to retrieve teachers', details: error.message });
+  }
+});
+
 module.exports = router;

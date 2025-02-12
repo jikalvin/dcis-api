@@ -1,13 +1,14 @@
 const express = require('express');
 const Program = require('../models/Program');
 const Class = require('../models/Class');
+const User = require('../models/User');
 const { auth, authorize } = require('../middleware/auth');
 const router = express.Router();
 
 // Get all programs with their classes
 router.get('/', auth, authorize('superadmin', 'admin'), async (req, res) => {
   try {
-    const programs = await Program.find().populate('classes');
+    const programs = await Program.find().populate(['classes', 'teachers']);
     res.json(programs);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -17,7 +18,7 @@ router.get('/', auth, authorize('superadmin', 'admin'), async (req, res) => {
 // Get a specific program by ID
 router.get('/:id', auth, async (req, res) => {
   try {
-    const program = await Program.findById(req.params.id).populate('classes');
+    const program = await Program.findById(req.params.id).populate(['classes', 'teachers']);
     if (!program) {
       return res.status(404).json({ message: 'Program not found' });
     }
@@ -122,6 +123,130 @@ router.post('/:id/classes', auth, authorize('superadmin', 'admin'), async (req, 
     res.status(201).json(savedClass);
   } catch (error) {
     res.status(400).json({ message: error.message });
+  }
+});
+
+/**
+ * @swagger
+ * /api/programs/assign-teacher:
+ *   post:
+ *     tags: [Programs]
+ *     summary: Assign a teacher to a program
+ *     description: Assign a specific teacher to a program by their ID
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - programId
+ *               - teacherId
+ *             properties:
+ *               programId:
+ *                 type: string
+ *               teacherId:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Teacher assigned to the program successfully
+ *       400:
+ *         description: Invalid input
+ *       404:
+ *         description: Program or teacher not found
+ *       500:
+ *         description: Server error
+ */
+router.post('/assign-teacher', auth, authorize('superadmin', 'admin'), async (req, res) => {
+  try {
+    const { programId, teacherId } = req.body;
+
+    // Find the program by ID
+    const program = await Program.findById(programId);
+    if (!program) {
+      return res.status(404).json({ error: 'Program not found' });
+    }
+
+    // Find the teacher by ID
+    const teacher = await User.findById(teacherId);
+    if (!teacher || teacher.role !== 'teacher') {
+      return res.status(404).json({ error: 'Teacher not found' });
+    }
+
+    // Check if the teacher is already assigned to the program
+    if (program.teachers.includes(teacherId)) {
+      return res.status(400).json({ error: 'Teacher is already assigned to this program' });
+    }
+
+    // Assign the teacher to the program
+    program.teachers.push(teacherId);
+    await program.save();
+
+    res.status(200).json({ message: 'Teacher assigned to program successfully' });
+  } catch (error) {
+    console.error('Error assigning teacher to program:', error);
+    res.status(500).json({ error: 'Failed to assign teacher to program', details: error.message });
+  }
+});
+
+/**
+ * @swagger
+ * /api/programs/unassign-teacher:
+ *   post:
+ *     tags: [Programs]
+ *     summary: Unassign a teacher from a program
+ *     description: Unassign a specific teacher from a program by their ID
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - programId
+ *               - teacherId
+ *             properties:
+ *               programId:
+ *                 type: string
+ *               teacherId:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Teacher unassigned from the program successfully
+ *       400:
+ *         description: Invalid input
+ *       404:
+ *         description: Program or teacher not found
+ *       500:
+ *         description: Server error
+ */
+router.post('/unassign-teacher', auth, authorize('superadmin', 'admin'), async (req, res) => {
+  try {
+    const { programId, teacherId } = req.body;
+
+    // Find the program by ID
+    const program = await Program.findById(programId);
+    if (!program) {
+      return res.status(404).json({ error: 'Program not found' });
+    }
+
+    // Check if the teacher is assigned to the program
+    if (!program.teachers.includes(teacherId)) {
+      return res.status(400).json({ error: 'Teacher is not assigned to this program' });
+    }
+
+    // Unassign the teacher from the program
+    program.teachers = program.teachers.filter(id => id.toString() !== teacherId);
+    await program.save();
+
+    res.status(200).json({ message: 'Teacher unassigned from program successfully' });
+  } catch (error) {
+    console.error('Error unassigning teacher from program:', error);
+    res.status(500).json({ error: 'Failed to unassign teacher from program', details: error.message });
   }
 });
 

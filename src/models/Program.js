@@ -17,6 +17,10 @@ const programSchema = new mongoose.Schema({
   classes: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Class'
+  }],
+  teachers: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
   }]
 });
 
