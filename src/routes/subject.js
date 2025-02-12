@@ -4,6 +4,7 @@ const Class = require('../models/Class');
 const User = require('../models/User');
 const { auth, authorize } = require('../middleware/auth');
 const router = express.Router();
+const mongoose = require('mongoose');
 
 // Get all subjects
 router.get('/', auth, async (req, res) => {
@@ -73,6 +74,10 @@ router.post('/', auth, authorize('superadmin', 'admin'), async (req, res) => {
     description
   } = req.body;
 
+  if (!className || !mongoose.isValidObjectId(className)) {
+    return res.status(400).json({ message: 'Invalid class ID provided.' });
+  }
+
   try {
     // Verify teacher exists and is a teacher
     const teacherExists = await User.findOne({ _id: teacher, role: 'teacher' });
@@ -126,12 +131,16 @@ router.patch('/:id', auth, authorize('superadmin', 'admin'), async (req, res) =>
   const updateFields = {};
 
   // Only allow updating certain fields
-  const allowedUpdates = ['name', 'category', 'teacher', 'status', 'description'];
+  const allowedUpdates = ['name', 'category', 'teacher', 'status', 'description', 'class'];
   Object.keys(updates).forEach(key => {
     if (allowedUpdates.includes(key) && updates[key] != null) {
       updateFields[key] = updates[key];
     }
   });
+
+  if (updateFields.class && (!updateFields.class || !mongoose.isValidObjectId(updateFields.class))) {
+    return res.status(400).json({ message: 'Invalid class ID provided.' });
+  }
 
   try {
     const subject = await Subject.findById(req.params.id);
@@ -156,6 +165,27 @@ router.patch('/:id', auth, authorize('superadmin', 'admin'), async (req, res) =>
       // Add subject to new teacher's subjects array
       await User.findByIdAndUpdate(
         updateFields.teacher,
+        { $push: { subjects: subject._id } }
+      );
+    }
+
+    // If class is being updated, handle the change
+    if (updateFields.class && updateFields.class !== subject.class.toString()) {
+      // Verify new class exists
+      const newClass = await Class.findById(updateFields.class);
+      if (!newClass) {
+        return res.status(404).json({ message: 'New class not found' });
+      }
+
+      // Remove subject from old class's subjects array
+      await Class.findByIdAndUpdate(
+        subject.class,
+        { $pull: { subjects: subject._id } }
+      );
+
+      // Add subject to new class's subjects array
+      await Class.findByIdAndUpdate(
+        updateFields.class,
         { $push: { subjects: subject._id } }
       );
     }
