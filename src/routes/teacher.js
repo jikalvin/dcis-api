@@ -234,7 +234,8 @@ router.post('/', auth, authorize('superadmin', 'admin'), async (req, res) => {
 
     // Generate institution ID
     const institutionId = `DCIS-T${new Date().getFullYear()}${Date.now().toString().slice(-4)}`;
-    const verificationCode = crypto.randomBytes(3).toString('hex');
+    // Generate a 6-digit verification code
+    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
 
     // Prepare teacher data
     const teacherData = {
