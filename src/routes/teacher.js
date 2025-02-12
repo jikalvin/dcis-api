@@ -571,4 +571,107 @@ router.get('/sorted', auth, authorize('superadmin', 'admin'), async (req, res) =
   }
 });
 
+/**
+ * @swagger
+ * /api/teachers/{id}:
+ *   put:
+ *     tags: [Teachers]
+ *     summary: Update a teacher's information
+ *     description: Update the details of a specific teacher by their ID
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: The ID of the teacher to update
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               firstName:
+ *                 type: string
+ *               lastName:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               phone:
+ *                 type: object
+ *                 properties:
+ *                   dailCode:
+ *                     type: string
+ *                   number:
+ *                     type: string
+ *               address:
+ *                 type: string
+ *               employmentType:
+ *                 type: string
+ *                 enum: ['Full Time', 'Part Time', 'Contract']
+ *               salary:
+ *                 type: object
+ *                 properties:
+ *                   currency:
+ *                     type: string
+ *                   amount:
+ *                     type: number
+ *               emergencyContact:
+ *                 type: object
+ *                 properties:
+ *                   dailCode:
+ *                     type: string
+ *                   number:
+ *                     type: string
+ *               startDate:
+ *                 type: string
+ *                 format: date
+ *               academicBackground:
+ *                 type: object
+ *                 properties:
+ *                   school:
+ *                     type: string
+ *                   date:
+ *                     type: string
+ *                     format: date
+ *                   certificate:
+ *                     type: string
+ *               medicalBackground:
+ *                 type: object
+ *                 properties:
+ *                   infos:
+ *                     type: array
+ *                     items:
+ *                       type: string
+ *     responses:
+ *       200:
+ *         description: Teacher information updated successfully
+ *       400:
+ *         description: Invalid input
+ *       404:
+ *         description: Teacher not found
+ *       500:
+ *         description: Server error
+ */
+router.put('/:id', auth, authorize('superadmin', 'admin'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+
+    // Find the teacher by ID
+    const teacher = await User.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
+    if (!teacher || teacher.role !== 'teacher') {
+      return res.status(404).json({ error: 'Teacher not found' });
+    }
+
+    res.status(200).json({ message: 'Teacher information updated successfully', teacher });
+  } catch (error) {
+    console.error('Error updating teacher information:', error);
+    res.status(500).json({ error: 'Failed to update teacher information', details: error.message });
+  }
+});
+
 module.exports = router;
