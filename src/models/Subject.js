@@ -7,9 +7,8 @@ const subjectSchema = new mongoose.Schema({
     trim: true
   },
   program: {
-    type: String,
-    required: true,
-    enum: ['Creche', 'Kindergarten', 'Primary', 'Secondary', 'High School']
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Program'
   },
   category: {
     type: String,
