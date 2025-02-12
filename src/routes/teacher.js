@@ -343,9 +343,9 @@ router.post('/', auth, authorize('superadmin', 'admin'), async (req, res) => {
  */
 router.post('/verify', auth, authorize('superadmin', 'admin'), async (req, res) => {
   try {
-    const { email, verificationCode } = req.body;
+    const { institutionId, verificationCode } = req.body;
     const teacher = await User.findOne({
-      email,
+      institutionId,
       role: 'teacher',
       verificationCode,
       verificationCodeExpires: { $gt: Date.now() }
