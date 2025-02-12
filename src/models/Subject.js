@@ -24,10 +24,10 @@ const subjectSchema = new mongoose.Schema({
     default: 'active'
   },
   description: String,
-  classes: [{
+  class: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Class'
-  }]
+  }
 }, {
   timestamps: true
 });
