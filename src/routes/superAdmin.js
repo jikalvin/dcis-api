@@ -236,7 +236,7 @@ router.post('/login', async (req, res) => {
     }
 
     // Generate verification code
-    const verificationCode = crypto.randomBytes(3).toString('hex');
+    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
     user.verificationCode = verificationCode;
     user.verificationCodeExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
     await user.save();

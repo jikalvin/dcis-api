@@ -30,7 +30,7 @@ const sendEmail = async (to, subject, html) => {
 
 // Generate verification code
 const generateVerificationCode = () => {
-  return crypto.randomBytes(3).toString('hex').toUpperCase();
+  return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
 /**

@@ -219,7 +219,7 @@ router.post('/',
 
       // Generate institution ID
       const institutionId = `DCIS${new Date().getFullYear()}${Date.now().toString().slice(-4)}`;
-      const verificationCode = crypto.randomBytes(3).toString('hex');
+      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
 
       // Handle profile image upload
       let cloudinaryResult = null;

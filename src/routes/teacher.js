@@ -284,7 +284,8 @@ router.post('/', auth, authorize('superadmin', 'admin'), async (req, res) => {
       subject: 'Account Verification',
       message: `Your verification code is: ${verificationCode}
       Your institution ID is: ${institutionId}
-      Please verify your account and change your password.`
+      And password is: ${password}
+      Please send the verification code to your administrator.`
     });
 
     // Prepare response
