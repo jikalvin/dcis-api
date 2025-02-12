@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const auth = require('../middleware/auth');
-const authorize = require('../middleware/authorize');
+const { auth, authorize } = require('../middleware/auth');
 const Student = require('../models/Student');
 
 /**
@@ -65,7 +64,7 @@ router.get('/', auth, async (req, res) => {
 });
 
 // Add a new student
-router.post('/', auth, authorize('admin'), async (req, res) => {
+router.post('/', auth, authorize('superadmin', 'admin'), async (req, res) => {
   try {
     const student = new Student(req.body);
     await student.save();
@@ -165,7 +164,7 @@ router.get('/:id', auth, async (req, res) => {
 });
 
 // Update student by ID
-router.put('/:id', auth, authorize('admin'), async (req, res) => {
+router.put('/:id', auth, authorize('superadmin', 'admin'), async (req, res) => {
   try {
     const student = await Student.findByIdAndUpdate(req.params.id, req.body, { new: true });
     if (!student) {
@@ -178,7 +177,7 @@ router.put('/:id', auth, authorize('admin'), async (req, res) => {
 });
 
 // Delete student by ID
-router.delete('/:id', auth, authorize('admin'), async (req, res) => {
+router.delete('/:id', auth, authorize('superadmin', 'admin'), async (req, res) => {
   try {
     const student = await Student.findByIdAndDelete(req.params.id);
     if (!student) {
@@ -224,7 +223,7 @@ router.delete('/:id', auth, authorize('admin'), async (req, res) => {
  */
 
 // Assign class to student
-router.post('/:studentId/assign-class/:classId', auth, authorize('admin'), async (req, res) => {
+router.post('/:studentId/assign-class/:classId', auth, authorize('superadmin', 'admin'), async (req, res) => {
   try {
     const student = await Student.findById(req.params.studentId);
     if (!student) {
