@@ -123,8 +123,8 @@ router.get('/:id', auth, authorize('superadmin', 'admin'), async (req, res) => {
  * /api/teachers:
  *   post:
  *     tags: [Teachers]
- *     summary: Add new teacher
- *     description: Create a new teacher account
+ *     summary: Create a new teacher
+ *     description: Create a new teacher account with comprehensive details
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -134,60 +134,178 @@ router.get('/:id', auth, authorize('superadmin', 'admin'), async (req, res) => {
  *           schema:
  *             type: object
  *             required:
- *               - firstName
- *               - lastName
+ *               - name.firstName
+ *               - name.lastName
  *               - email
- *               - programs
+ *               - password
  *             properties:
- *               firstName:
+ *               name:
+ *                 type: object
+ *                 properties:
+ *                   firstName:
+ *                     type: string
+ *                   lastName:
+ *                     type: string
+ *               sex:
  *                 type: string
- *               lastName:
+ *                 enum: ['Male', 'Female', 'Other']
+ *               dob:
  *                 type: string
+ *                 format: date
+ *               phone:
+ *                 type: object
+ *                 properties:
+ *                   dailCode:
+ *                     type: string
+ *                     default: '+237'
+ *                   number:
+ *                     type: string
  *               email:
  *                 type: string
- *               programs:
- *                 type: array
- *                 items:
- *                   type: string
+ *                 format: email
+ *               address:
+ *                 type: string
+ *               employmentType:
+ *                 type: string
+ *                 enum: ['Full Time', 'Part Time', 'Contract']
+ *               salary:
+ *                 type: object
+ *                 properties:
+ *                   currency:
+ *                     type: string
+ *                     default: 'XAF'
+ *                   amount:
+ *                     type: number
+ *               emergencyContact:
+ *                 type: object
+ *                 properties:
+ *                   dailCode:
+ *                     type: string
+ *                     default: '+237'
+ *                   number:
+ *                     type: string
+ *               startDate:
+ *                 type: string
+ *                 format: date
+ *               academicBackground:
+ *                 type: object
+ *                 properties:
+ *                   school:
+ *                     type: string
+ *                   date:
+ *                     type: string
+ *                     format: date
+ *                   certificate:
+ *                     type: string
+ *               medicalBackground:
+ *                 type: object
+ *                 properties:
+ *                   infos:
+ *                     type: array
+ *                     items:
+ *                       type: string
+ *               password:
+ *                 type: string
  *     responses:
  *       201:
  *         description: Teacher account created successfully
+ *       400:
+ *         description: Invalid input
  *       500:
  *         description: Server error
  */
 router.post('/', auth, authorize('superadmin', 'admin'), async (req, res) => {
   try {
-    const password = crypto.randomBytes(8).toString('hex');
-    const institutionId = `DCIS${new Date().getFullYear()}${Date.now().toString().slice(-4)}`;
+    const { 
+      name, 
+      sex, 
+      dob, 
+      phone, 
+      email, 
+      address, 
+      employmentType, 
+      salary, 
+      emergencyContact, 
+      startDate, 
+      academicBackground, 
+      medicalBackground,
+      password 
+    } = req.body;
+
+    // Generate institution ID
+    const institutionId = `DCIS-T${new Date().getFullYear()}${Date.now().toString().slice(-4)}`;
     const verificationCode = crypto.randomBytes(3).toString('hex');
 
+    // Prepare teacher data
     const teacherData = {
-      ...req.body,
-      role: 'teacher',
+      firstName: name.firstName,
+      lastName: name.lastName,
+      email,
       password,
+      role: 'teacher',
       institutionId,
       verificationCode,
-      verificationCodeExpires: Date.now() + 24 * 60 * 60 * 1000 // 24 hours
+      verificationCodeExpires: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
+      gender: sex,
+      dateOfBirth: dob ? new Date(dob) : null,
+      contact: phone,
+      address,
+      teacherDetails: {
+        employmentType,
+        salary: {
+          currency: salary.currency,
+          amount: salary.amount
+        },
+        emergencyContact: {
+          dailCode: emergencyContact.dailCode,
+          number: emergencyContact.number
+        },
+        startDate: startDate ? new Date(startDate) : null,
+        academicBackground: {
+          school: academicBackground.school,
+          date: academicBackground.date ? new Date(academicBackground.date) : null,
+          certificate: academicBackground.certificate
+        },
+        medicalBackground: {
+          infos: medicalBackground.infos || []
+        }
+      },
+      isVerified: false
     };
 
+    // Create new user
     const teacher = new User(teacherData);
     await teacher.save();
 
-    // Send credentials via email
+    // Send verification email
     await sendEmail({
       email: teacher.email,
-      subject: 'Account Credentials',
+      subject: 'Account Verification',
       message: `Your verification code is: ${verificationCode}
       Your institution ID is: ${institutionId}
-      Your temporary password is: ${password}
-      Please change your password after first login.`
+      Please verify your account and change your password.`
     });
 
+    // Prepare response
+    const responseTeacher = {
+      id: teacher._id,
+      firstName: teacher.firstName,
+      lastName: teacher.lastName,
+      email: teacher.email,
+      institutionId: teacher.institutionId,
+      role: teacher.role
+    };
+
     res.status(201).json({
-      message: 'Teacher account created successfully. Credentials sent to email.'
+      message: 'Teacher account created successfully. Verification code sent to email.',
+      teacher: responseTeacher
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Teacher creation error:', error);
+    res.status(500).json({ 
+      error: 'Failed to create teacher', 
+      details: error.message 
+    });
   }
 });
 

@@ -58,6 +58,50 @@ const userSchema = new mongoose.Schema({
   profileImage: {
     type: String
   },
+  teacherDetails: {
+    employmentType: {
+      type: String,
+      enum: ['Full Time', 'Part Time', 'Contract']
+    },
+    salary: {
+      currency: {
+        type: String,
+        default: 'XAF'
+      },
+      amount: {
+        type: Number,
+        default: 0
+      }
+    },
+    emergencyContact: {
+      dailCode: {
+        type: String,
+        default: '+237'
+      },
+      number: {
+        type: String
+      }
+    },
+    startDate: {
+      type: Date
+    },
+    academicBackground: {
+      school: {
+        type: String
+      },
+      date: {
+        type: Date
+      },
+      certificate: {
+        type: String
+      }
+    },
+    medicalBackground: {
+      infos: [{
+        type: String
+      }]
+    }
+  },
 }, {
   timestamps: true
 });
