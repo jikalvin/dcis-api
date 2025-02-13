@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { auth, authorize } = require('../middleware/auth');
 const Student = require('../models/Student');
+const Class = require('../models/Class');
 
 /**
  * @swagger
@@ -66,8 +67,42 @@ router.get('/', auth, async (req, res) => {
 // Add a new student
 router.post('/', auth, authorize('superadmin', 'admin'), async (req, res) => {
   try {
-    const student = new Student(req.body);
+    const {
+      name,
+      dob,
+      sex,
+      classId,
+      address,
+      emergencyContact1,
+      emergencyContact2,
+      academicBackground,
+      medicalBackground
+    } = req.body;
+
+    // Verify class exists
+    const classExists = await Class.findById(classId);
+    if (!classExists) {
+      return res.status(404).json({ error: 'Class not found' });
+    }
+
+    // Create new student
+    const student = new Student({
+      name,
+      dob,
+      sex,
+      class: classId,
+      address,
+      emergencyContacts: [emergencyContact1, emergencyContact2],
+      academicBackground,
+      medicalBackground,
+      studentId: `STU${Math.floor(1000 + Math.random() * 9000)}`,
+    });
     await student.save();
+
+    // Add student to class
+    classExists.students.push(student._id);
+    await classExists.save();
+
     res.status(201).json(student);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -318,6 +353,46 @@ router.get('/:studentId/attendance', auth, async (req, res) => {
       return res.status(404).json({ error: 'Student not found' });
     }
     res.status(200).json(student.attendance);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * @swagger
+ * /api/students/class/{classId}:
+ *   get:
+ *     tags: [Students]
+ *     summary: Get students by class
+ *     description: Retrieve a list of students by class ID
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: classId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: List of students
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Student'
+ *       404:
+ *         description: No students found for this class
+ *       500:
+ *         description: Server error
+ */
+
+// Get students by class
+router.get('/class/:classId', auth, async (req, res) => {
+  try {
+    const students = await Student.find({ class: req.params.classId });
+    res.status(200).json(students);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

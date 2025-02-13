@@ -1,26 +1,32 @@
 const mongoose = require('mongoose');
 
 const studentSchema = new mongoose.Schema({
-  firstName: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  lastName: {
-    type: String,
-    required: true,
-    trim: true
+  name: {
+    firstName: {
+      type: String,
+      required: true,
+      trim: true
+    },
+    middleName: {
+      type: String,
+      trim: true
+    },
+    lastName: {
+      type: String,
+      required: true,
+      trim: true
+    }
   },
   studentId: {
     type: String,
     required: true,
     unique: true
   },
-  dateOfBirth: {
+  dob: {
     type: Date,
     required: true
   },
-  gender: {
+  sex: {
     type: String,
     enum: ['male', 'female', 'other'],
     required: true
@@ -39,6 +45,20 @@ const studentSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  address: {
+    type: String,
+    required: true
+  },
+  emergencyContacts: [{
+    dialCode: {
+      type: String,
+      required: true
+    },
+    number: {
+      type: Number,
+      required: true
+    }
+  }],
   guardianInfo: [{
     relation: {
       type: String,
@@ -50,18 +70,16 @@ const studentSchema = new mongoose.Schema({
       required: true
     }
   }],
-  academicBackground: [{
-    school: String,
-    year: String,
-    grade: String,
-    documents: [String] // URLs to uploaded documents
-  }],
+  academicBackground: {
+    previousSchool: String,
+    previousClass: String,
+    lastAverage: Number,
+    lastPosition: Number
+  },
   medicalBackground: {
-    conditions: [String],
-    allergies: [String],
-    medications: [String],
-    notes: String,
-    documents: [String] // URLs to uploaded documents
+    infos: [{
+      description: String
+    }]
   },
   picture: String, // URL to uploaded picture
   attendance: [{
