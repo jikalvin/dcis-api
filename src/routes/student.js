@@ -81,9 +81,9 @@ router.post('/', auth, authorize('superadmin', 'admin'), async (req, res) => {
 
     // Verify class exists
     const classExists = await Class.findById(classId);
-    // if (!classExists) {
-    //   return res.status(404).json({ error: 'Class not found' });
-    // }
+    if (!classExists) {
+      return res.status(404).json({ error: 'Class not found' });
+    }
 
     // Create new student
     const student = new Student({
