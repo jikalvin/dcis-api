@@ -99,10 +99,6 @@ router.post('/', auth, authorize('superadmin', 'admin'), async (req, res) => {
     });
     await student.save();
 
-    // Add student to class
-    classExists.students.push(student._id);
-    await classExists.save();
-
     res.status(201).json(student);
   } catch (error) {
     res.status(500).json({ error: error.message });
