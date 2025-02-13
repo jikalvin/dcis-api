@@ -47,27 +47,27 @@ const studentSchema = new mongoose.Schema({
   },
   address: {
     type: String,
-    required: true
+    // required: true
   },
   emergencyContacts: [{
     dialCode: {
       type: String,
-      required: true
+      // required: true
     },
     number: {
       type: Number,
-      required: true
+      // required: true
     }
   }],
   guardianInfo: [{
     relation: {
       type: String,
-      required: true
+      // required: true
     },
     guardian: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: true
+      // required: true
     }
   }],
   academicBackground: {
@@ -85,12 +85,12 @@ const studentSchema = new mongoose.Schema({
   attendance: [{
     date: {
       type: Date,
-      required: true
+      // required: true
     },
     status: {
       type: String,
       enum: ['present', 'absent', 'late'],
-      required: true
+      // required: true
     },
     notes: String
   }],
@@ -98,7 +98,7 @@ const studentSchema = new mongoose.Schema({
     exams: [{
       examId: {
         type: String,
-        required: true
+        // required: true
       },
       name: String,
       subject: {
@@ -113,7 +113,7 @@ const studentSchema = new mongoose.Schema({
     homework: [{
       homeworkId: {
         type: String,
-        required: true
+        // required: true
       },
       name: String,
       subject: {
@@ -130,16 +130,16 @@ const studentSchema = new mongoose.Schema({
     type: {
       type: String,
       enum: ['school_fees', 'service'],
-      required: true
+      // required: true
     },
     amount: {
       type: Number,
-      required: true
+      // required: true
     },
     status: {
       type: String,
       enum: ['paid', 'pending', 'overdue'],
-      required: true
+      // required: true
     },
     dueDate: Date,
     paidDate: Date,
