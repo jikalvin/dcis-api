@@ -43,7 +43,7 @@ const studentSchema = new mongoose.Schema({
   },
   academicYear: {
     type: String,
-    required: true
+    // required: true
   },
   address: {
     type: String,
