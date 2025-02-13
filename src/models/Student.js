@@ -33,7 +33,7 @@ const studentSchema = new mongoose.Schema({
   },
   program: {
     type: String,
-    required: true,
+    // required: true,
     enum: ['Creche', 'Kindergarten', 'Primary', 'Secondary', 'High School']
   },
   class: {
