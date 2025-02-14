@@ -76,7 +76,7 @@ const { auth, authorize } = require('../middleware/auth');
  *       500:
  *         description: Server error
  */
-router.post('/', auth, authorize('admin'), async (req, res) => {
+router.post('/', auth, authorize('admin', 'superadmin'), async (req, res) => {
   try {
     const examSession = new ExamSession(req.body);
     await examSession.save();
