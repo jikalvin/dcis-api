@@ -6,13 +6,13 @@ const examSessionSchema = new mongoose.Schema({
     required: true
   },
   programs: [{
-    type: String,
-    required: true
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Program'
   }],
   classes: [{
-    type: String,
-    required: true
-  }],
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Class'
+  },],
   startDate: {
     type: Date,
     required: true
