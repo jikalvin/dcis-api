@@ -206,7 +206,9 @@ router.post('/',
       const { 
         role, 
         programIds, 
-        fullName, 
+        firstName,
+        middleName,
+        lastName, 
         phone, 
         email, 
         sex, 
@@ -229,9 +231,9 @@ router.post('/',
 
       // Prepare admin data
       const adminData = {
-        firstName: fullName.firstName,
-        middleName: fullName.middleName || '',
-        lastName: fullName.lastName,
+        firstName: firstName,
+        middleName: middleName || '',
+        lastName: lastName,
         email,
         password,
         role: role || 'admin',
