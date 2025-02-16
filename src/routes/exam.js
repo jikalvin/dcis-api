@@ -135,6 +135,11 @@ router.post('/', auth, authorize('admin', 'superadmin'), async (req, res) => {
 router.get('/', auth, async (req, res) => {
   try {
     const examSessions = await ExamSession.find()
+      .populate('program')
+      .populate('classes')
+      .populate('marks.student', 'name class')
+      .populate('marks.subject', 'name')
+      .populate('marks.submittedBy', 'name')
       .sort('-createdAt');
     res.status(200).json(examSessions);
   } catch (error) {
@@ -172,6 +177,8 @@ router.get('/', auth, async (req, res) => {
 router.get('/:id', auth, async (req, res) => {
   try {
     const examSession = await ExamSession.findById(req.params.id)
+      .populate('program')
+      .populate('classes')
       .populate('marks.student', 'name class')
       .populate('marks.subject', 'name')
       .populate('marks.submittedBy', 'name');
