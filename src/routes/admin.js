@@ -243,7 +243,7 @@ router.post('/',
         nationality,
         dateOfBirth: dob,
         gender: sex,
-        contact: JSON.parse(phone),
+        contact: phone,
         address,
         profileImage: profileImageUrl,
         isVerified: false
