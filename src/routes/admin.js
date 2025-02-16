@@ -4,8 +4,7 @@ const User = require('../models/User');
 const { auth, authorize } = require('../middleware/auth');
 const sendEmail = require('../utils/email');
 const crypto = require('crypto');
-const uploadToCloudinary = require('../utils/cloudinary');
-const upload = require('../middleware/fileUpload');
+const { upload, cloudinary } = require('../utils/cloudinary');
 
 /**
  * @swagger
@@ -224,9 +223,9 @@ router.post('/',
       const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
 
       // Handle profile image upload
-      let cloudinaryResult = null;
+      let profileImageUrl = null;
       if (req.file) {
-        cloudinaryResult = await uploadToCloudinary(req.file.path, 'administrators');
+        profileImageUrl = req.file.path;
       }
 
       // Prepare admin data
@@ -244,9 +243,9 @@ router.post('/',
         nationality,
         dateOfBirth: dob,
         gender: sex,
-        contact: phone,
+        contact: JSON.parse(phone),
         address,
-        profileImage: cloudinaryResult ? cloudinaryResult.secure_url : null,
+        profileImage: profileImageUrl,
         isVerified: false
       };
 

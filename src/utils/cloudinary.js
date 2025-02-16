@@ -1,4 +1,6 @@
 const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const multer = require('multer');
 
 // Configure Cloudinary
 cloudinary.config({
@@ -7,27 +9,17 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-/**
- * Upload an image to Cloudinary
- * @param {string} filePath - Path to the file to upload
- * @param {string} folder - Cloudinary folder to upload to
- * @returns {Promise<Object>} - Cloudinary upload result
- */
-const uploadToCloudinary = async (filePath, folder = 'administrators') => {
-  try {
-    const result = await cloudinary.uploader.upload(filePath, {
-      folder: folder,
-      resource_type: 'image',
-      // Optional transformations
-      transformation: [
-        { width: 500, height: 500, crop: 'limit' }
-      ]
-    });
-    return result;
-  } catch (error) {
-    console.error('Cloudinary upload error:', error);
-    throw new Error('Image upload failed');
+// Configure Cloudinary storage for Multer
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'administrators',
+    format: async (req, file) => 'png', // supports promises as well
+    public_id: (req, file) => `admin-${Date.now()}`
   }
-};
+});
 
-module.exports = { uploadToCloudinary };
+// Multer upload configuration
+const upload = multer({ storage: storage });
+
+module.exports = { upload, cloudinary };
