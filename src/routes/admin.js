@@ -244,7 +244,7 @@ router.post('/',
         nationality,
         dateOfBirth: dob,
         gender: sex,
-        contact: `${phone.dailCode}${phone.number}`,
+        contact: phone,
         address,
         profileImage: cloudinaryResult ? cloudinaryResult.secure_url : null,
         isVerified: false
