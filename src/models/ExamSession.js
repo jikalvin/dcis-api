@@ -5,6 +5,10 @@ const examSessionSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  session: {
+    type: String,
+    required: true
+  },
   programs: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Program'

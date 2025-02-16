@@ -78,7 +78,32 @@ const { auth, authorize } = require('../middleware/auth');
  */
 router.post('/', auth, authorize('admin', 'superadmin'), async (req, res) => {
   try {
-    const examSession = new ExamSession(req.body);
+    const {
+      term,
+      startDate,
+      endDate,
+      publicationDate,
+      publicationTime,
+      program,
+      classes,
+      submissionFrequency,
+      session
+    } = req.body;
+
+    // Combine publicationDate and publicationTime into a single Date object
+    const publicationDateTime = new Date(`${publicationDate}T${publicationTime}:00`);
+
+    const examSession = new ExamSession({
+      term,
+      startDate,
+      endDate,
+      publicationDateTime,
+      program,
+      classes,
+      submissionFrequency,
+      session: session[0]
+    });
+
     await examSession.save();
     res.status(201).json(examSession);
   } catch (error) {
