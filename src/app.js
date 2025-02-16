@@ -57,7 +57,7 @@ app.use('/api/support', supportRoutes);
 app.use('/api/students', studentRoutes);
 
 // Create default super admin account
-// createDefaultSuperAdmin();
+createDefaultSuperAdmin();
 
 // Error handling middleware
 app.use((err, req, res, next) => {
