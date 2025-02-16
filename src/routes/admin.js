@@ -218,6 +218,10 @@ router.post('/',
         password 
       } = req.body;
       console.log("The role is: ", req.body);
+      const payload = req.body;
+      for (let [key, value] of payload.entries()) {
+        console.log(`${key}: ${value}`);
+      }
 
       // Generate institution ID
       const institutionId = `DCIS${new Date().getFullYear()}${Date.now().toString().slice(-4)}`;
