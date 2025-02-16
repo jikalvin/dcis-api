@@ -47,6 +47,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     enum: ['Creche', 'Kindergarten', 'Primary', 'Secondary', 'High School']
   }],
+  prgs: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Program'
+  }],
   nationality: String,
   dateOfBirth: Date,
   gender: {
@@ -107,7 +111,7 @@ const userSchema = new mongoose.Schema({
 });
 
 // Hash password before saving
-userSchema.pre('save', async function(next) {
+userSchema.pre('save', async function (next) {
   if (this.isModified('password')) {
     this.password = await bcrypt.hash(this.password, 8);
   }
@@ -115,7 +119,7 @@ userSchema.pre('save', async function(next) {
 });
 
 // Compare password method
-userSchema.methods.comparePassword = async function(password) {
+userSchema.methods.comparePassword = async function (password) {
   return bcrypt.compare(password, this.password);
 };
 
