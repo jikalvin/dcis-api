@@ -240,7 +240,7 @@ router.post('/',
         institutionId,
         verificationCode,
         verificationCodeExpires: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
-        programs: programIds || [],
+        programs: JSON.parse(programIds) || [],
         nationality,
         dateOfBirth: dob,
         gender: sex,
