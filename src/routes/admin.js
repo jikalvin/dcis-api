@@ -200,7 +200,7 @@ router.get('/:id', auth, authorize('superadmin'), async (req, res) => {
 router.post('/', 
   auth, 
   authorize('superadmin'), 
-  upload.single('profileImage'), 
+  // upload.single('profileImage'), 
   async (req, res) => {
     try {
       const { 
