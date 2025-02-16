@@ -135,7 +135,7 @@ router.post('/', auth, authorize('admin', 'superadmin'), async (req, res) => {
 router.get('/', auth, async (req, res) => {
   try {
     const examSessions = await ExamSession.find()
-      .populate('program')
+      .populate('programs')
       .populate('classes')
       .populate('marks.student', 'name class')
       .populate('marks.subject', 'name')
@@ -177,7 +177,7 @@ router.get('/', auth, async (req, res) => {
 router.get('/:id', auth, async (req, res) => {
   try {
     const examSession = await ExamSession.findById(req.params.id)
-      .populate('program')
+      .populate('programs')
       .populate('classes')
       .populate('marks.student', 'name class')
       .populate('marks.subject', 'name')
