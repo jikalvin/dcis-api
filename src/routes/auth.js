@@ -155,7 +155,7 @@ router.post('/login/step1', async (req, res) => {
  */
 router.post('/login/step2', async (req, res) => {
   try {
-    const { userId, verificationCode, password } = req.body;
+    const { userId, verificationCode } = req.body;
     const user = await User.findById(userId);
     
     if (!user) {
@@ -170,12 +170,6 @@ router.post('/login/step2', async (req, res) => {
       return res.status(400).json({ error: 'Invalid or expired verification code' });
     }
     
-    // Verify password
-    const isPasswordValid = await user.comparePassword(password);
-    if (!isPasswordValid) {
-      return res.status(400).json({ error: 'Invalid password' });
-    }
-    
     // Clear verification code
     user.verificationCode = undefined;
     user.verificationCodeExpires = undefined;
@@ -186,12 +180,7 @@ router.post('/login/step2', async (req, res) => {
     
     res.status(200).json({
       token,
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role
-      }
+      user
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
