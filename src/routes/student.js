@@ -3,6 +3,7 @@ const router = express.Router();
 const { auth, authorize } = require('../middleware/auth');
 const Student = require('../models/Student');
 const Class = require('../models/Class');
+const { upload } = require('../utils/cloudinary');
 
 /**
  * @swagger
@@ -40,9 +41,67 @@ const Class = require('../models/Class');
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
- *             $ref: '#/components/schemas/Student'
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: object
+ *                 properties:
+ *                   firstName:
+ *                     type: string
+ *                   middleName:
+ *                     type: string
+ *                   lastName:
+ *                     type: string
+ *               dob:
+ *                 type: string
+ *                 format: date
+ *               sex:
+ *                 type: string
+ *                 enum: [male, female, other]
+ *               classId:
+ *                 type: string
+ *               address:
+ *                 type: string
+ *               emergencyContact1:
+ *                 type: object
+ *                 properties:
+ *                   dialCode:
+ *                     type: string
+ *                   number:
+ *                     type: number
+ *               emergencyContact2:
+ *                 type: object
+ *                 properties:
+ *                   dialCode:
+ *                     type: string
+ *                   number:
+ *                     type: number
+ *               academicBackground:
+ *                 type: object
+ *                 properties:
+ *                   previousSchool:
+ *                     type: string
+ *                   previousClass:
+ *                     type: string
+ *                   lastAverage:
+ *                     type: number
+ *                   lastPosition:
+ *                     type: number
+ *               medicalBackground:
+ *                 type: object
+ *                 properties:
+ *                   infos:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         description:
+ *                           type: string
+ *               picture:
+ *                 type: string
+ *                 format: binary
  *     responses:
  *       201:
  *         description: Student created successfully
@@ -65,7 +124,7 @@ router.get('/', auth, async (req, res) => {
 });
 
 // Add a new student
-router.post('/', auth, authorize('superadmin', 'admin'), async (req, res) => {
+router.post('/', auth, authorize('superadmin', 'admin'), upload.single('picture'), async (req, res) => {
   try {
     const {
       name,
@@ -85,6 +144,12 @@ router.post('/', auth, authorize('superadmin', 'admin'), async (req, res) => {
       return res.status(404).json({ error: 'Class not found' });
     }
 
+    // Handle picture upload
+    let pictureUrl = null;
+    if (req.file) {
+      pictureUrl = req.file.path;
+    }
+
     // Create new student
     const student = new Student({
       name,
@@ -96,8 +161,13 @@ router.post('/', auth, authorize('superadmin', 'admin'), async (req, res) => {
       academicBackground,
       medicalBackground,
       studentId: `STU${Math.floor(1000 + Math.random() * 9000)}`,
+      picture: pictureUrl
     });
     await student.save();
+
+    // Add student to class
+    classExists.students.push(student._id);
+    await classExists.save();
 
     res.status(201).json(student);
   } catch (error) {
