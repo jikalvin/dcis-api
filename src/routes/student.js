@@ -457,7 +457,15 @@ router.get('/:studentId/attendance', auth, async (req, res) => {
 // Get students by class
 router.get('/class/:classId', auth, async (req, res) => {
   try {
-    const students = await Student.find({ class: req.params.classId });
+    const students = await Student.find({ class: req.params.classId })
+      .populate('class')
+      .populate('emergencyContacts')
+      .populate('academicBackground')
+      .populate('medicalBackground.infos')
+      .populate('guardianInfo.guardian', 'firstName lastName')
+      .populate('performance.exams.subject', 'name')
+      .populate('performance.homework.subject', 'name')
+      .populate('payments');
     res.status(200).json(students);
   } catch (error) {
     res.status(500).json({ error: error.message });
