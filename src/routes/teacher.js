@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
+const Class = require('../models/Class');
 const { auth, authorize } = require('../middleware/auth');
 const sendEmail = require('../utils/email');
 const crypto = require('crypto');
@@ -113,6 +114,54 @@ router.get('/:id', auth, authorize('superadmin', 'admin'), async (req, res) => {
     }
     
     res.status(200).json(teacher);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * @swagger
+ * /api/teachers/{id}/classes:
+ *   get:
+ *     tags: [Teachers]
+ *     summary: Get all classes for a teacher
+ *     description: Retrieve a list of all classes where the specified teacher teaches
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: List of classes retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Class'
+ *       404:
+ *         description: Teacher not found
+ *       500:
+ *         description: Server error
+ */
+router.get('/:id/classes', auth, authorize('superadmin', 'admin', 'teacher'), async (req, res) => {
+  try {
+    const teacher = await User.findOne({ _id: req.params.id, role: 'teacher' });
+    if (!teacher) {
+      return res.status(404).json({ error: 'Teacher not found' });
+    }
+
+    // Get all classes where this teacher teaches
+    const classes = await Class.find({ 'subjects.teacher': teacher._id })
+      .populate('subjects.teacher', 'firstName lastName')
+      .populate('students', 'firstName lastName studentId')
+      .populate('classTeacher', 'firstName lastName');
+
+    res.status(200).json(classes);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
