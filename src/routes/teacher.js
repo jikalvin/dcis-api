@@ -165,8 +165,7 @@ router.get('/:id/classes', auth, authorize('superadmin', 'admin', 'teacher'), as
     // Query the Class collection using those class IDs
     const classes = await Class.find({ _id: { $in: classIds } })
       .populate('subjects.teacher', 'firstName lastName')
-      .populate('students', 'firstName lastName studentId')
-      .populate('classTeacher', 'firstName lastName');
+      .populate('students', 'firstName lastName studentId');
 
     res.status(200).json(classes);
   } catch (error) {
