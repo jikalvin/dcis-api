@@ -156,8 +156,8 @@ router.get('/:id/classes', auth, authorize('superadmin', 'admin', 'teacher'), as
     }
 
     // Get all classes where this teacher teaches
-    console.log(teacher._id)
-    const classes = await Class.find({ 'subjects.teacher': teacher._id })
+    console.log(req.params.id)
+    const classes = await Class.find({ 'subjects.teacher': req.params.id })
       .populate('subjects.teacher')
       .populate('students', 'firstName lastName studentId')
       .populate('classTeacher', 'firstName lastName');
