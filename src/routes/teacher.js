@@ -156,13 +156,19 @@ router.get('/:id/classes', auth, authorize('superadmin', 'admin', 'teacher'), as
     }
 
     // Get all classes where this teacher teaches
-    console.log(req.params.id)
-    const classes = await Class.find({ 'subjects.teacher': req.params.id })
-      .populate('subjects.teacher')
+    const classes = await Class.find({ 'subjects.teacher': teacher._id })
+      .populate({
+        path: 'subjects.teacher',
+        match: { _id: teacher._id },
+        select: 'firstName lastName'
+      })
       .populate('students', 'firstName lastName studentId')
       .populate('classTeacher', 'firstName lastName');
 
-    res.status(200).json(classes);
+    // Filter out classes where the teacher is not assigned to any subject
+    const filteredClasses = classes.filter(cls => cls.subjects.some(subject => subject.teacher && subject.teacher._id.equals(teacher._id)));
+
+    res.status(200).json(filteredClasses);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
