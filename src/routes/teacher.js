@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
 const Class = require('../models/Class');
+const Subject = require('../models/Subject');
 const { auth, authorize } = require('../middleware/auth');
 const sendEmail = require('../utils/email');
 const crypto = require('crypto');
@@ -155,18 +156,19 @@ router.get('/:id/classes', auth, authorize('superadmin', 'admin', 'teacher'), as
       return res.status(404).json({ error: 'Teacher not found' });
     }
 
-    // Get all classes where this teacher teaches
-    const classes = await Class.find({ 'subjects.teacher': teacher._id })
-      .populate({
-        path: 'subjects.teacher',
-        match: { _id: teacher._id },
-        select: 'firstName lastName'
-      })
+    // Query the Subject collection to find all subjects where the teacher is assigned
+    const subjects = await Subject.find({ teacher: teacher._id });
 
-    // Filter out classes where the teacher is not assigned to any subject
-    const filteredClasses = classes.filter(cls => cls.subjects.some(subject => subject.teacher && subject.teacher._id.equals(teacher._id)));
+    // Extract the class IDs from those subjects
+    const classIds = subjects.map(subject => subject.class);
 
-    res.status(200).json(filteredClasses);
+    // Query the Class collection using those class IDs
+    const classes = await Class.find({ _id: { $in: classIds } })
+      .populate('subjects.teacher', 'firstName lastName')
+      .populate('students', 'firstName lastName studentId')
+      .populate('classTeacher', 'firstName lastName');
+
+    res.status(200).json(classes);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
