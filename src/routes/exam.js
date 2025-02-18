@@ -143,6 +143,8 @@ router.get('/', auth, async (req, res) => {
           model: 'Subject'
         }
       })
+      .populate('classes.subjects.teacher')
+      .populate('students')
       .populate('marks.student', 'name class')
       .populate('marks.subject', 'name')
       .populate('marks.submittedBy', 'name')
