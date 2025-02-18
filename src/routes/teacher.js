@@ -162,8 +162,6 @@ router.get('/:id/classes', auth, authorize('superadmin', 'admin', 'teacher'), as
         match: { _id: teacher._id },
         select: 'firstName lastName'
       })
-      .populate('students', 'firstName lastName studentId')
-      .populate('classTeacher', 'firstName lastName');
 
     // Filter out classes where the teacher is not assigned to any subject
     const filteredClasses = classes.filter(cls => cls.subjects.some(subject => subject.teacher && subject.teacher._id.equals(teacher._id)));
