@@ -30,22 +30,26 @@ const classSchema = new mongoose.Schema({
     ref: 'Student'
   }],
   subjects: [{
-    name: {
-      type: String,
-      required: true
-    },
-    category: String,
-    teacher: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
-    },
-    description: String,
-    status: {
-      type: String,
-      enum: ['active', 'inactive'],
-      default: 'active'
-    }
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Subject'
   }],
+  // subjects: [{
+  //   name: {
+  //     type: String,
+  //     required: true
+  //   },
+  //   category: String,
+  //   teacher: {
+  //     type: mongoose.Schema.Types.ObjectId,
+  //     ref: 'User'
+  //   },
+  //   description: String,
+  //   status: {
+  //     type: String,
+  //     enum: ['active', 'inactive'],
+  //     default: 'active'
+  //   }
+  // }],
   schedule: [{
     subject: {
       type: mongoose.Schema.Types.ObjectId,

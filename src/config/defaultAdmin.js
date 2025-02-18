@@ -11,15 +11,15 @@ const createDefaultSuperAdmin = async () => {
     }
 
     const password = process.env.DEFAULT_ADMIN_PASSWORD || 'admin123456';
-    const institutionId = `DCIS${new Date().getFullYear()}002`;
+    const institutionId = `DCIS${new Date().getFullYear()}003`;
     console.log(institutionId);
 
     // Create default super admin
     const superAdmin = new User({
-      firstName: 'Elvis',
-      lastName: 'Admin',
+      firstName: 'Operations',
+      lastName: 'DCIS',
       // email: process.env.DEFAULT_ADMIN_EMAIL || 'admin@dcis.edu',
-      email: 'elvisnjichii@gmail.com',
+      email: 'operationsmanagersec@dcisedu.com',
       password,
       role: 'superadmin',
       institutionId,
