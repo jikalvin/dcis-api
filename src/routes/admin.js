@@ -40,7 +40,7 @@ const { upload, cloudinary } = require('../utils/cloudinary');
 router.get('/', auth, authorize('superadmin'), async (req, res) => {
   try {
     const admins = await User.find({ role: 'admin' })
-      .select('-password -verificationCode -verificationCodeExpires');
+      .select('-password -verificationCode -verificationCodeExpires').populate('prgs');
     res.status(200).json(admins);
   } catch (error) {
     res.status(500).json({ error: error.message });
