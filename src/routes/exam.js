@@ -136,8 +136,13 @@ router.get('/', auth, async (req, res) => {
   try {
     const examSessions = await ExamSession.find()
       .populate('programs')
-      .populate('classes')
-      .populate('classes.subjects')
+      .populate('classes').populate({
+        path: 'classes',
+        populate: {
+          path: 'subjects',
+          model: 'Subject'
+        }
+      })
       .populate('marks.student', 'name class')
       .populate('marks.subject', 'name')
       .populate('marks.submittedBy', 'name')
