@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Notification = require('../models/Notification');
 const { auth, authorize } = require('../middleware/auth');
+const { upload, cloudinary } = require('../utils/cloudinary');
 
 /**
  * @swagger
@@ -42,7 +43,7 @@ const { auth, authorize } = require('../middleware/auth');
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             properties:
@@ -57,6 +58,9 @@ const { auth, authorize } = require('../middleware/auth');
  *                 type: array
  *                 items:
  *                   type: string
+ *               image:
+ *                 type: string
+ *                 format: binary
  *     responses:
  *       201:
  *         description: Notification created successfully
@@ -67,11 +71,17 @@ const { auth, authorize } = require('../middleware/auth');
  *       500:
  *         description: Server error
  */
-router.post('/', auth, authorize(['admin', 'teacher', 'superadmin']), async (req, res) => {
+router.post('/', auth, authorize(['admin', 'teacher', 'superadmin']), upload.single('picture'), async (req, res) => {
   try {
+    let imageUrl = null;
+    if (req.file) {
+      imageUrl = req.file.path;
+    }
+
     const notification = new Notification({
       ...req.body,
-      sender: req.user._id
+      sender: req.user._id,
+      picture: imageUrl
     });
     await notification.save();
     
@@ -194,7 +204,7 @@ router.post('/:id/read', auth, async (req, res) => {
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             properties:
@@ -209,6 +219,9 @@ router.post('/:id/read', auth, async (req, res) => {
  *                 type: array
  *                 items:
  *                   type: string
+ *               image:
+ *                 type: string
+ *                 format: binary
  *     responses:
  *       201:
  *         description: Notification scheduled successfully
@@ -219,12 +232,18 @@ router.post('/:id/read', auth, async (req, res) => {
  *       500:
  *         description: Server error
  */
-router.post('/schedule', auth, authorize(['admin', 'teacher']), async (req, res) => {
+router.post('/schedule', auth, authorize(['admin', 'teacher']), upload.single('image'), async (req, res) => {
   try {
+    let imageUrl = null;
+    if (req.file) {
+      imageUrl = req.file.path;
+    }
+
     const notification = new Notification({
       ...req.body,
       sender: req.user._id,
-      status: 'Scheduled'
+      status: 'Scheduled',
+      image: imageUrl
     });
     await notification.save();
     
