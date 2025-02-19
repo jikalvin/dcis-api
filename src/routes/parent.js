@@ -2,13 +2,34 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
 const Student = require('../models/Student');
-const { auth, authorize } = require('../middleware/auth');
+const { auth, authorize, generateToken } = require('../middleware/auth');
 const sendEmail = require('../utils/email');
 const crypto = require('crypto');
 const { upload } = require('../utils/cloudinary');
 const mongoose = require('mongoose');
 
 // Get all parents
+/**
+ * @swagger
+ * /api/parents:
+ *   get:
+ *     tags: [Parents]
+ *     summary: Get all parents
+ *     description: Retrieve a list of all parents
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of parents retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Parent'
+ *       500:
+ *         description: Server error
+ */
 router.get('/', auth, authorize('superadmin', 'admin'), async (req, res) => {
   try {
     const parents = await User.find({ role: 'parent' })
@@ -20,6 +41,33 @@ router.get('/', auth, authorize('superadmin', 'admin'), async (req, res) => {
 });
 
 // Get specific parent
+/**
+ * @swagger
+ * /api/parents/{id}:
+ *   get:
+ *     tags: [Parents]
+ *     summary: Get specific parent
+ *     description: Retrieve a specific parent by ID
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Parent retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Parent'
+ *       404:
+ *         description: Parent not found
+ *       500:
+ *         description: Server error
+ */
 router.get('/:id', auth, authorize('superadmin', 'admin'), async (req, res) => {
   try {
     const parent = await User.findOne({ _id: req.params.id, role: 'parent' })
@@ -41,6 +89,48 @@ router.get('/:id', auth, authorize('superadmin', 'admin'), async (req, res) => {
 });
 
 // Add new parent
+/**
+ * @swagger
+ * /api/parents:
+ *   post:
+ *     tags: [Parents]
+ *     summary: Add new parent
+ *     description: Create a new parent account
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *               firstName:
+ *                 type: string
+ *               lastName:
+ *                 type: string
+ *               relation:
+ *                 type: string
+ *               childrenIds:
+ *                 type: string
+ *               profileImage:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       201:
+ *         description: Parent account created/updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       500:
+ *         description: Server error
+ */
 router.post('/', auth, authorize('superadmin', 'admin'), upload.single('profileImage'), async (req, res) => {
   try {
     const { childrenIds, ...parentData } = req.body;
@@ -103,6 +193,35 @@ router.post('/', auth, authorize('superadmin', 'admin'), upload.single('profileI
 });
 
 // Get parent's children information
+/**
+ * @swagger
+ * /api/parents/{id}/children:
+ *   get:
+ *     tags: [Parents]
+ *     summary: Get parent's children information
+ *     description: Retrieve a list of children for a specific parent
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: List of children retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Student'
+ *       403:
+ *         description: Not authorized to access this information
+ *       500:
+ *         description: Server error
+ */
 router.get('/:id/children', auth, authorize('superadmin', 'admin', 'parent'), async (req, res) => {
   try {
     // Ensure parent can only access their own children's information
@@ -121,6 +240,41 @@ router.get('/:id/children', auth, authorize('superadmin', 'admin', 'parent'), as
 });
 
 // Change password
+/**
+ * @swagger
+ * /api/parents/change-password:
+ *   post:
+ *     tags: [Parents]
+ *     summary: Change password
+ *     description: Change the password for a parent account
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               currentPassword:
+ *                 type: string
+ *               newPassword:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Password updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       400:
+ *         description: Current password is incorrect
+ *       500:
+ *         description: Server error
+ */
 router.post('/change-password', auth, authorize('parent'), async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
@@ -135,6 +289,185 @@ router.post('/change-password', auth, authorize('parent'), async (req, res) => {
     await parent.save();
 
     res.status(200).json({ message: 'Password updated successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Parent login
+/**
+ * @swagger
+ * /api/parents/login:
+ *   post:
+ *     tags: [Parents]
+ *     summary: Parent login
+ *     description: Login for parents using institution ID and password
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               institutionId:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *                 parent:
+ *                   $ref: '#/components/schemas/Parent'
+ *       404:
+ *         description: Parent not found
+ *       400:
+ *         description: Invalid password
+ *       500:
+ *         description: Server error
+ */
+router.post('/login', async (req, res) => {
+  try {
+    const { institutionId, password } = req.body;
+    const parent = await User.findOne({ institutionId, role: 'parent' });
+
+    if (!parent) {
+      return res.status(404).json({ error: 'Parent not found' });
+    }
+
+    const isMatch = await parent.comparePassword(password);
+    if (!isMatch) {
+      return res.status(400).json({ error: 'Invalid password' });
+    }
+
+    const token = generateToken(parent);
+    res.status(200).json({ token, parent });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Forgot password
+/**
+ * @swagger
+ * /api/parents/forgot-password:
+ *   post:
+ *     tags: [Parents]
+ *     summary: Forgot password
+ *     description: Request a password reset for a parent account
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Password reset instructions sent to your email
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       404:
+ *         description: Parent not found
+ *       500:
+ *         description: Server error
+ */
+router.post('/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body;
+    const parent = await User.findOne({ email, role: 'parent' });
+
+    if (!parent) {
+      return res.status(404).json({ error: 'Parent not found' });
+    }
+
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    parent.resetPasswordToken = resetToken;
+    parent.resetPasswordExpires = Date.now() + 30 * 60 * 1000; // 30 minutes
+    await parent.save();
+
+    const resetUrl = `${req.protocol}://${req.get('host')}/api/parents/reset-password/${resetToken}`;
+    await sendEmail({
+      email: parent.email,
+      subject: 'Password Reset Request',
+      message: `Click the following link to reset your password: ${resetUrl}`
+    });
+
+    res.status(200).json({ message: 'Password reset instructions sent to your email' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Reset password
+/**
+ * @swagger
+ * /api/parents/reset-password/{token}:
+ *   post:
+ *     tags: [Parents]
+ *     summary: Reset password
+ *     description: Reset the password for a parent account using the reset token
+ *     parameters:
+ *       - in: path
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Password has been reset successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       400:
+ *         description: Password reset token is invalid or has expired
+ *       500:
+ *         description: Server error
+ */
+router.post('/reset-password/:token', async (req, res) => {
+  try {
+    const { password } = req.body;
+    const parent = await User.findOne({
+      resetPasswordToken: req.params.token,
+      resetPasswordExpires: { $gt: Date.now() }
+    });
+
+    if (!parent) {
+      return res.status(400).json({ error: 'Password reset token is invalid or has expired' });
+    }
+
+    parent.password = password;
+    parent.resetPasswordToken = undefined;
+    parent.resetPasswordExpires = undefined;
+    await parent.save();
+
+    res.status(200).json({ message: 'Password has been reset successfully' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
