@@ -14,7 +14,7 @@ const notificationSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['Message', 'Event', 'Announcement', 'Reminder'],
+    enum: ['Message', 'Event', 'Announcement', 'Reminder', 'Broadcast'],
     required: true
   },
   priority: {
