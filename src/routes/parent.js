@@ -41,7 +41,7 @@ router.get('/:id', auth, authorize('superadmin', 'admin'), async (req, res) => {
 });
 
 // Add new parent
-router.post('/', auth, authorize('superadmin', 'admin'), upload.single('picture'), async (req, res) => {
+router.post('/', auth, authorize('superadmin', 'admin'), upload.single('profileImage'), async (req, res) => {
   try {
     const { childrenIds, ...parentData } = req.body;
     const institutionId = `DCIS${new Date().getFullYear()}${Date.now().toString().slice(-4)}`;
@@ -72,16 +72,16 @@ router.post('/', auth, authorize('superadmin', 'admin'), upload.single('picture'
         profileImage: pictureUrl
       });
       await parent.save();
-
-      // Send credentials via email
-      await sendEmail({
-        email: parent.email,
-        subject: 'Account Credentials',
-        message: `Your institution ID is: ${institutionId}
-        Your password is: ${password}
-        Please change your password after first login.`
-      });
     }
+
+    // Send credentials via email
+    await sendEmail({
+      email: parent.email,
+      subject: 'Account Credentials',
+      message: `Your institution ID is: ${institutionId}
+      Your password is: ${password}
+      Please change your password after first login.`
+    });
 
     // Convert childrenIds to ObjectIds
     const childrenObjectIds = JSON.parse(childrenIds).map(id => new mongoose.Types.ObjectId(id));
