@@ -177,6 +177,58 @@ router.post('/', auth, authorize('superadmin', 'admin'), upload.single('picture'
 
 /**
  * @swagger
+ * /api/students/search:
+ *   get:
+ *     tags: [Students]
+ *     summary: Search students by name
+ *     description: Search for students by their name and provide real-time suggestions
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: name
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: List of students matching the search query
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Student'
+ *       500:
+ *         description: Server error
+ */
+
+// Search students by name
+router.get('/search', auth, async (req, res) => {
+  try {
+    const { name } = req.query;
+    const students = await Student.find({
+      $or: [
+        { 'name.firstName': { $regex: name, $options: 'i' } },
+        { 'name.middleName': { $regex: name, $options: 'i' } },
+        { 'name.lastName': { $regex: name, $options: 'i' } }
+      ]
+    }).populate('class')
+      .populate('emergencyContacts')
+      .populate('academicBackground')
+      .populate('medicalBackground.infos')
+      .populate('guardianInfo.guardian', 'firstName lastName')
+      .populate('performance.exams.subject', 'name')
+      .populate('performance.homework.subject', 'name')
+      .populate('payments');
+    res.status(200).json(students);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * @swagger
  * /api/students/{id}:
  *   get:
  *     tags: [Students]
@@ -459,58 +511,6 @@ router.get('/class/:classId', auth, async (req, res) => {
   try {
     const students = await Student.find({ class: req.params.classId })
       .populate('class')
-      .populate('emergencyContacts')
-      .populate('academicBackground')
-      .populate('medicalBackground.infos')
-      .populate('guardianInfo.guardian', 'firstName lastName')
-      .populate('performance.exams.subject', 'name')
-      .populate('performance.homework.subject', 'name')
-      .populate('payments');
-    res.status(200).json(students);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-/**
- * @swagger
- * /api/students/search:
- *   get:
- *     tags: [Students]
- *     summary: Search students by name
- *     description: Search for students by their name and provide real-time suggestions
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: query
- *         name: name
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: List of students matching the search query
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Student'
- *       500:
- *         description: Server error
- */
-
-// Search students by name
-router.get('/search', auth, async (req, res) => {
-  try {
-    const { name } = req.query;
-    const students = await Student.find({
-      $or: [
-        { 'name.firstName': { $regex: name, $options: 'i' } },
-        { 'name.middleName': { $regex: name, $options: 'i' } },
-        { 'name.lastName': { $regex: name, $options: 'i' } }
-      ]
-    }).populate('class')
       .populate('emergencyContacts')
       .populate('academicBackground')
       .populate('medicalBackground.infos')
