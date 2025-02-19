@@ -5,6 +5,7 @@ const Student = require('../models/Student');
 const { auth, authorize } = require('../middleware/auth');
 const sendEmail = require('../utils/email');
 const crypto = require('crypto');
+const { upload } = require('../utils/cloudinary');
 
 // Get all parents
 router.get('/', auth, authorize('superadmin', 'admin'), async (req, res) => {
@@ -39,18 +40,25 @@ router.get('/:id', auth, authorize('superadmin', 'admin'), async (req, res) => {
 });
 
 // Add new parent
-router.post('/', auth, authorize('superadmin', 'admin'), async (req, res) => {
+router.post('/', auth, authorize('superadmin', 'admin'), upload.single('picture'), async (req, res) => {
   try {
     const { childrenIds, ...parentData } = req.body;
     const password = crypto.randomBytes(8).toString('hex');
     const institutionId = `DCIS${new Date().getFullYear()}${Date.now().toString().slice(-4)}`;
+
+    // Handle picture upload
+    let pictureUrl = null;
+    if (req.file) {
+      pictureUrl = req.file.path;
+    }
 
     // Create parent account
     const parent = new User({
       ...parentData,
       role: 'parent',
       password,
-      institutionId
+      institutionId,
+      profileImage: pictureUrl
     });
     await parent.save();
 
