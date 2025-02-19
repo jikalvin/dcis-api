@@ -67,7 +67,7 @@ const { auth, authorize } = require('../middleware/auth');
  *       500:
  *         description: Server error
  */
-router.post('/', auth, authorize(['admin', 'teacher']), async (req, res) => {
+router.post('/', auth, authorize(['admin', 'teacher', 'superadmin']), async (req, res) => {
   try {
     const notification = new Notification({
       ...req.body,
