@@ -6,6 +6,7 @@ const { auth, authorize } = require('../middleware/auth');
 const sendEmail = require('../utils/email');
 const crypto = require('crypto');
 const { upload } = require('../utils/cloudinary');
+const mongoose = require('mongoose');
 
 // Get all parents
 router.get('/', auth, authorize('superadmin', 'admin'), async (req, res) => {
@@ -62,10 +63,13 @@ router.post('/', auth, authorize('superadmin', 'admin'), upload.single('picture'
     });
     await parent.save();
 
+    // Convert childrenIds to ObjectIds
+    const childrenObjectIds = childrenIds.map(id => mongoose.Types.ObjectId(id));
+
     // Link parent to children
-    if (childrenIds && childrenIds.length > 0) {
+    if (childrenObjectIds && childrenObjectIds.length > 0) {
       await Student.updateMany(
-        { _id: { $in: childrenIds } },
+        { _id: { $in: childrenObjectIds } },
         { $push: { guardianInfo: { relation: parentData.relation, guardian: parent._id } } }
       );
     }
