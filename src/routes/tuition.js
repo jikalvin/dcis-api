@@ -107,7 +107,9 @@ router.get('/', auth, authorize('superadmin','admin'), async (req, res) => {
   try {
     const tuitionFees = await TuitionFee.find({
       status: { $ne: 'Archived' }
-    });
+    })
+    .populate('program')
+    .populate('class');
     res.status(200).json(tuitionFees);
   } catch (error) {
     res.status(500).json({ error: error.message });
