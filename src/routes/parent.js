@@ -84,7 +84,7 @@ router.post('/', auth, authorize('superadmin', 'admin'), upload.single('picture'
     }
 
     // Convert childrenIds to ObjectIds
-    const childrenObjectIds = childrenIds.map(id => mongoose.Types.ObjectId(id));
+    const childrenObjectIds = JSON.parse(childrenIds).map(id => new mongoose.Types.ObjectId(id));
 
     // Link parent to children
     if (childrenObjectIds && childrenObjectIds.length > 0) {
