@@ -55,6 +55,7 @@ router.post('/', auth, authorize('superadmin', 'admin'), upload.single('profileI
     // Check if parent already exists
     let parent = await User.findOne({ email: parentData.email, role: 'parent' });
 
+    const password = crypto.randomBytes(8).toString('hex');
     if (parent) {
       // Update existing parent
       parent = await User.findByIdAndUpdate(parent._id, {
@@ -63,7 +64,6 @@ router.post('/', auth, authorize('superadmin', 'admin'), upload.single('profileI
       }, { new: true });
     } else {
       // Create new parent account
-      const password = crypto.randomBytes(8).toString('hex');
       parent = new User({
         ...parentData,
         role: 'parent',
