@@ -72,7 +72,7 @@ const { auth, authorize } = require('../middleware/auth');
  *       500:
  *         description: Server error
  */
-router.post('/', auth, authorize('admin'), async (req, res) => {
+router.post('/', auth, authorize('superadmin','admin'), async (req, res) => {
   try {
     const tuitionFee = new TuitionFee(req.body);
     await tuitionFee.save();
@@ -103,7 +103,7 @@ router.post('/', auth, authorize('admin'), async (req, res) => {
  *       500:
  *         description: Server error
  */
-router.get('/', auth, authorize('admin'), async (req, res) => {
+router.get('/', auth, authorize('superadmin','admin'), async (req, res) => {
   try {
     const tuitionFees = await TuitionFee.find({
       status: { $ne: 'Archived' }
@@ -204,7 +204,7 @@ router.get('/student/:studentId', auth, async (req, res) => {
  *       500:
  *         description: Server error
  */
-router.post('/payment', auth, authorize('admin'), async (req, res) => {
+router.post('/payment', auth, authorize('superadmin','admin'), async (req, res) => {
   try {
     const { studentId, tuitionId, amount, installmentName, paymentMethod } = req.body;
     
@@ -268,7 +268,7 @@ router.post('/payment', auth, authorize('admin'), async (req, res) => {
  *       500:
  *         description: Server error
  */
-router.post('/remind/:studentId', auth, authorize('admin'), async (req, res) => {
+router.post('/remind/:studentId', auth, authorize('superadmin','admin'), async (req, res) => {
   try {
     const studentTuition = await StudentTuition.findOne({
       student: req.params.studentId,
@@ -348,7 +348,7 @@ router.post('/remind/:studentId', auth, authorize('admin'), async (req, res) => 
  *       500:
  *         description: Server error
  */
-router.get('/transactions', auth, authorize('admin'), async (req, res) => {
+router.get('/transactions', auth, authorize('superadmin','admin'), async (req, res) => {
   try {
     const recentPayments = await StudentTuition.aggregate([
       { $unwind: '$payments' },
