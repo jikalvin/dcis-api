@@ -338,7 +338,7 @@ router.post('/change-password', auth, authorize('parent'), async (req, res) => {
 router.post('/login', async (req, res) => {
   try {
     const { institutionId, password } = req.body;
-    const parent = await User.findOne({ institutionId, role: 'parent' });
+    const parent = await User.findOne({ institutionId: institutionId.toUpperCase(), role: 'parent' });
 
     if (!parent) {
       return res.status(404).json({ error: 'Parent not found' });
