@@ -72,7 +72,7 @@ router.get('/:id', auth, authorize('superadmin', 'admin'), async (req, res) => {
   try {
     const parent = await User.findOne({ _id: req.params.id, role: 'parent' })
       .select('-password -verificationCode -verificationCodeExpires');
-    
+
     if (!parent) {
       return res.status(404).json({ error: 'Parent not found' });
     }
@@ -81,7 +81,7 @@ router.get('/:id', auth, authorize('superadmin', 'admin'), async (req, res) => {
     const children = await Student.find({ 'guardianInfo.guardian': parent._id })
       .populate('class', 'name program level')
       .select('firstName lastName studentId class program academicYear performance payments');
-    
+
     res.status(200).json({ parent, children });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -144,25 +144,28 @@ router.post('/', auth, authorize('superadmin', 'admin'), upload.single('profileI
 
     // Check if parent already exists
     let parent = await User.findOne({ email: parentData.email, role: 'parent' });
-
-    const password = crypto.randomBytes(8).toString('hex');
     if (parent) {
       // Update existing parent
-      parent = await User.findByIdAndUpdate(parent._id, {
-        ...parentData,
-        profileImage: pictureUrl || parent.profileImage
-      }, { new: true });
-    } else {
-      // Create new parent account
-      parent = new User({
-        ...parentData,
-        role: 'parent',
-        password,
-        institutionId,
-        profileImage: pictureUrl
+      parent = await User.findOneAndUpdate(
+        { email: parentData.email, role: 'parent' },
+        { ...parentData, profileImage: pictureUrl ? pictureUrl : parent.profileImage },
+        { new: true }
+      );
+      return res.status(201).json({
+        message: 'Parent account updated successfully.'
       });
-      await parent.save();
     }
+
+    const password = crypto.randomBytes(8).toString('hex');
+    // Create new parent account
+    parent = new User({
+      ...parentData,
+      role: 'parent',
+      password,
+      institutionId,
+      profileImage: pictureUrl
+    });
+    await parent.save();
 
     // Send credentials via email
     await sendEmail({
@@ -232,7 +235,7 @@ router.get('/:id/children', auth, authorize('superadmin', 'admin', 'parent'), as
     const children = await Student.find({ 'guardianInfo.guardian': req.params.id })
       .populate('class', 'name program level')
       .select('name studentId class program academicYear performance payments attendance');
-    
+
     res.status(200).json(children);
   } catch (error) {
     res.status(500).json({ error: error.message });
