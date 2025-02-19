@@ -112,7 +112,7 @@ router.get('/:id/children', auth, authorize('superadmin', 'admin', 'parent'), as
 
     const children = await Student.find({ 'guardianInfo.guardian': req.params.id })
       .populate('class', 'name program level')
-      .select('firstName lastName studentId class program academicYear performance payments attendance');
+      .select('name studentId class program academicYear performance payments attendance');
     
     res.status(200).json(children);
   } catch (error) {
