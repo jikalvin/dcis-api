@@ -5,14 +5,16 @@ const tuitionFeeSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  program: {
-    type: String,
+  program: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Program',
     required: true
-  },
-  class: {
-    type: String,
+  }],
+  class: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Class',
     required: true
-  },
+  }],
   baseAmount: {
     type: Number,
     required: true
