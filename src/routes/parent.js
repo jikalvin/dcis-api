@@ -44,7 +44,6 @@ router.get('/:id', auth, authorize('superadmin', 'admin'), async (req, res) => {
 router.post('/', auth, authorize('superadmin', 'admin'), upload.single('picture'), async (req, res) => {
   try {
     const { childrenIds, ...parentData } = req.body;
-    const password = crypto.randomBytes(8).toString('hex');
     const institutionId = `DCIS${new Date().getFullYear()}${Date.now().toString().slice(-4)}`;
 
     // Handle picture upload
@@ -53,15 +52,36 @@ router.post('/', auth, authorize('superadmin', 'admin'), upload.single('picture'
       pictureUrl = req.file.path;
     }
 
-    // Create parent account
-    const parent = new User({
-      ...parentData,
-      role: 'parent',
-      password,
-      institutionId,
-      profileImage: pictureUrl
-    });
-    await parent.save();
+    // Check if parent already exists
+    let parent = await User.findOne({ email: parentData.email, role: 'parent' });
+
+    if (parent) {
+      // Update existing parent
+      parent = await User.findByIdAndUpdate(parent._id, {
+        ...parentData,
+        profileImage: pictureUrl || parent.profileImage
+      }, { new: true });
+    } else {
+      // Create new parent account
+      const password = crypto.randomBytes(8).toString('hex');
+      parent = new User({
+        ...parentData,
+        role: 'parent',
+        password,
+        institutionId,
+        profileImage: pictureUrl
+      });
+      await parent.save();
+
+      // Send credentials via email
+      await sendEmail({
+        email: parent.email,
+        subject: 'Account Credentials',
+        message: `Your institution ID is: ${institutionId}
+        Your password is: ${password}
+        Please change your password after first login.`
+      });
+    }
 
     // Convert childrenIds to ObjectIds
     const childrenObjectIds = childrenIds.map(id => mongoose.Types.ObjectId(id));
@@ -74,17 +94,8 @@ router.post('/', auth, authorize('superadmin', 'admin'), upload.single('picture'
       );
     }
 
-    // Send credentials via email
-    await sendEmail({
-      email: parent.email,
-      subject: 'Account Credentials',
-      message: `Your institution ID is: ${institutionId}
-      Your password is: ${password}
-      Please change your password after first login.`
-    });
-
     res.status(201).json({
-      message: 'Parent account created successfully. Credentials sent to email.'
+      message: 'Parent account created/updated successfully. Credentials sent to email if new account.'
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
