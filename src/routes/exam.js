@@ -592,4 +592,39 @@ router.get('/:id/report-card/:studentId', auth, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/exam-sessions/{id}:
+ *   delete:
+ *     tags: [Exam Sessions]
+ *     summary: Delete an exam session
+ *     description: Delete an exam session by ID
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Exam session deleted successfully
+ *       404:
+ *         description: Exam session not found
+ *       500:
+ *         description: Server error
+ */
+router.delete('/:id', auth, authorize('admin', 'superadmin'), async (req, res) => {
+  try {
+    const examSession = await ExamSession.findByIdAndDelete(req.params.id);
+    if (!examSession) {
+      return res.status(404).json({ error: 'Exam session not found' });
+    }
+    res.status(200).json({ message: 'Exam session deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 module.exports = router;
