@@ -3,6 +3,7 @@ const router = express.Router();
 const User = require('../models/User');
 const Class = require('../models/Class');
 const Subject = require('../models/Subject');
+const Program = require('../models/Program');
 const { auth, authorize } = require('../middleware/auth');
 const sendEmail = require('../utils/email');
 const crypto = require('crypto');
@@ -193,6 +194,7 @@ router.get('/:id/classes', auth, authorize('superadmin', 'admin', 'teacher'), as
  *               - name.lastName
  *               - email
  *               - password
+ *               - programId
  *             properties:
  *               name:
  *                 type: object
@@ -261,6 +263,9 @@ router.get('/:id/classes', auth, authorize('superadmin', 'admin', 'teacher'), as
  *                       type: string
  *               password:
  *                 type: string
+ *               programId:
+ *                 type: string
+ *                 description: Program ID to which the teacher will be assigned
  *     responses:
  *       201:
  *         description: Teacher account created successfully
@@ -284,7 +289,8 @@ router.post('/', auth, authorize('superadmin', 'admin'), async (req, res) => {
       startDate, 
       academicBackground, 
       medicalBackground,
-      password 
+      password,
+      programId
     } = req.body;
 
     // Generate institution ID
@@ -332,6 +338,14 @@ router.post('/', auth, authorize('superadmin', 'admin'), async (req, res) => {
     // Create new user
     const teacher = new User(teacherData);
     await teacher.save();
+
+    // Assign teacher to the program
+    const program = await Program.findById(programId);
+    if (!program) {
+      return res.status(404).json({ error: 'Program not found' });
+    }
+    program.teachers.push(teacher._id);
+    await program.save();
 
     // Send verification email
     await sendEmail({
@@ -726,6 +740,42 @@ router.put('/:id', auth, authorize('superadmin', 'admin'), async (req, res) => {
   } catch (error) {
     console.error('Error updating teacher information:', error);
     res.status(500).json({ error: 'Failed to update teacher information', details: error.message });
+  }
+});
+
+/**
+ * @swagger
+ * /api/teachers/{id}:
+ *   delete:
+ *     tags: [Teachers]
+ *     summary: Delete a teacher
+ *     description: Delete a teacher account by ID
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Teacher account deleted successfully
+ *       404:
+ *         description: Teacher not found
+ *       500:
+ *         description: Server error
+ */
+router.delete('/:id', auth, authorize('superadmin', 'admin'), async (req, res) => {
+  try {
+    const teacher = await User.findOneAndDelete({ _id: req.params.id, role: 'teacher' });
+    if (!teacher) {
+      return res.status(404).json({ error: 'Teacher not found' });
+    }
+
+    res.status(200).json({ message: 'Teacher account deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 
