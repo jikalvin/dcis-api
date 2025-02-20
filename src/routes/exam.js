@@ -245,7 +245,7 @@ router.get('/:id', auth, async (req, res) => {
  *       500:
  *         description: Server error
  */
-router.put('/:id', auth, authorize('admin'), async (req, res) => {
+router.put('/:id', auth, authorize('admin', 'superadmin'), async (req, res) => {
   try {
     const examSession = await ExamSession.findByIdAndUpdate(
       req.params.id,
@@ -286,7 +286,7 @@ router.put('/:id', auth, authorize('admin'), async (req, res) => {
  *       500:
  *         description: Server error
  */
-router.put('/:id/toggle-status', auth, authorize('admin'), async (req, res) => {
+router.put('/:id/toggle-status', auth, authorize('admin', 'superadmin'), async (req, res) => {
   try {
     const examSession = await ExamSession.findById(req.params.id);
     
