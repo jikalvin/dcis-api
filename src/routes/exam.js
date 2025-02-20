@@ -87,7 +87,8 @@ router.post('/', auth, authorize('admin', 'superadmin'), async (req, res) => {
       program,
       classes,
       submissionFrequency,
-      session
+      session,
+      sessionType
     } = req.body;
 
     // Combine publicationDate and publicationTime into a single Date object
@@ -101,7 +102,8 @@ router.post('/', auth, authorize('admin', 'superadmin'), async (req, res) => {
       program,
       classes,
       submissionFrequency,
-      session: session[0]
+      session: session[0],
+      sessionType,
     });
 
     await examSession.save();

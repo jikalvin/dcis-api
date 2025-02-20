@@ -1,13 +1,35 @@
 const mongoose = require('mongoose');
 
 const examSessionSchema = new mongoose.Schema({
+  academicYear: {
+    type: String,
+    required: true
+  },
   term: {
     type: String,
     required: true
   },
-  session: {
+  sessionType: {
     type: String,
+    enum: ['midterm', 'endterm', 'kindergarten'],
     required: true
+  },
+  startDate: {
+    type: Date,
+    required: true
+  },
+  endDate: {
+    type: Date,
+    required: true
+  },
+  isActive: {
+    type: Boolean,
+    default: true
+  },
+  programLevel: {
+    type: String,
+    enum: ['kindergarten', 'primary', 'secondary', 'highschool'],
+    // required: true
   },
   programs: [{
     type: mongoose.Schema.Types.ObjectId,
@@ -17,14 +39,6 @@ const examSessionSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Class'
   },],
-  startDate: {
-    type: Date,
-    required: true
-  },
-  endDate: {
-    type: Date,
-    required: true
-  },
   reminderFrequency: {
     type: Number,  // in days
     default: 1

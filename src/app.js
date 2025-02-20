@@ -21,6 +21,7 @@ const supportRoutes = require('./routes/support');
 const createDefaultSuperAdmin = require('./config/defaultAdmin');
 const cors = require('cors');
 const studentRoutes = require('./routes/student');
+const examMarksRoutes = require('./routes/examMarks');
 
 dotenv.config();
 
@@ -55,6 +56,7 @@ app.use('/api/exam-sessions', examRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/support', supportRoutes);
 app.use('/api/students', studentRoutes);
+app.use('/api/exam-marks', examMarksRoutes);
 
 // Create default super admin account
 createDefaultSuperAdmin();
