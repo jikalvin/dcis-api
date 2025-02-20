@@ -135,11 +135,6 @@ router.get('/', auth, async (req, res) => {
   try {
     const filters = {};
     
-    // Regular users can only see their own tickets
-    if (!req.user.isAdmin) {
-      filters.submittedBy = req.user._id;
-    }
-    
     // Apply status filter if provided
     if (req.query.status) {
       filters.status = req.query.status;
