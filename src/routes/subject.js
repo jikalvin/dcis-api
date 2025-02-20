@@ -230,4 +230,70 @@ router.delete('/:id', auth, authorize('superadmin', 'admin'), async (req, res) =
   }
 });
 
+// Assign a teacher to a subject (Admin or Super Admin only)
+router.post('/:id/assign-teacher', auth, authorize('superadmin', 'admin'), async (req, res) => {
+  const { teacherId } = req.body;
+  if (!mongoose.isValidObjectId(teacherId)) {
+    return res.status(400).json({ message: 'Invalid teacher ID provided.' });
+  }
+
+  try {
+    const subject = await Subject.findById(req.params.id);
+    if (!subject) {
+      return res.status(404).json({ message: 'Subject not found' });
+    }
+
+    // Verify teacher exists and is a teacher
+    const teacherExists = await User.findOne({ _id: teacherId, role: 'teacher' });
+    if (!teacherExists) {
+      return res.status(404).json({ message: 'Teacher not found' });
+    }
+
+    // Assign teacher to subject
+    subject.teacher = teacherId;
+    await subject.save();
+
+    // Add subject to teacher's subjects array
+    await User.findByIdAndUpdate(
+      teacherId,
+      { $push: { subjects: subject._id } }
+    );
+
+    res.status(200).json(await subject.populate([
+      { path: 'teacher', select: 'firstName lastName email' },
+      { path: 'program', select: 'name' },
+      { path: 'class', select: 'name' }
+    ]));
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Drop a teacher from a subject (Admin or Super Admin only)
+router.post('/:id/drop-teacher', auth, authorize('superadmin', 'admin'), async (req, res) => {
+  try {
+    const subject = await Subject.findById(req.params.id);
+    if (!subject) {
+      return res.status(404).json({ message: 'Subject not found' });
+    }
+
+    // Remove subject from teacher's subjects array
+    await User.findByIdAndUpdate(
+      subject.teacher,
+      { $pull: { subjects: subject._id } }
+    );
+
+    // Remove teacher from subject
+    subject.teacher = null;
+    await subject.save();
+
+    res.status(200).json(await subject.populate([
+      { path: 'program', select: 'name' },
+      { path: 'class', select: 'name' }
+    ]));
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 module.exports = router;

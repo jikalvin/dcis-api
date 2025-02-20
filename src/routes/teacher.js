@@ -81,6 +81,52 @@ router.get('/', auth, authorize('superadmin', 'admin'), async (req, res) => {
 
 /**
  * @swagger
+ * /api/teachers/search:
+ *   get:
+ *     tags: [Teachers]
+ *     summary: Search for teachers
+ *     description: Search for teachers by name or email
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: query
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The search query (name or email)
+ *     responses:
+ *       200:
+ *         description: List of matching teachers retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Teacher'
+ *       500:
+ *         description: Server error
+ */
+router.get('/search', auth, authorize('superadmin', 'admin'), async (req, res) => {
+  try {
+    const { query } = req.query;
+    const teachers = await User.find({
+      role: 'teacher',
+      $or: [
+        { firstName: { $regex: query, $options: 'i' } },
+        { lastName: { $regex: query, $options: 'i' } },
+        { email: { $regex: query, $options: 'i' } }
+      ]
+    }).select('-password -verificationCode -verificationCodeExpires');
+
+    res.status(200).json(teachers);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * @swagger
  * /api/teachers/{id}:
  *   get:
  *     tags: [Teachers]
