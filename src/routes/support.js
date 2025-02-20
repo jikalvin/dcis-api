@@ -385,4 +385,50 @@ router.put('/:id/assign', auth, authorize('admin'), async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/support/user/{userId}:
+ *   get:
+ *     tags: [Support]
+ *     summary: Get support tickets by user
+ *     description: Retrieve all support tickets submitted by a specific user
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: List of support tickets retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/SupportTicket'
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Server error
+ */
+router.get('/user/:userId', auth, async (req, res) => {
+  try {
+    const tickets = await SupportTicket.find({ submittedBy: req.params.userId })
+      .populate('submittedBy', 'name email')
+      .populate('assignedTo', 'name email')
+      .sort('-createdAt');
+      
+    if (!tickets.length) {
+      return res.status(404).json({ error: 'No tickets found for this user' });
+    }
+    
+    res.status(200).json(tickets);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 module.exports = router;
