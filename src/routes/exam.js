@@ -102,7 +102,7 @@ router.post('/', auth, authorize('admin', 'superadmin'), async (req, res) => {
       program,
       classes,
       submissionFrequency,
-      session: session[0],
+      session: session,
       sessionType,
     });
 
