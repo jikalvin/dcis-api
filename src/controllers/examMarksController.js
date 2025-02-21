@@ -37,6 +37,7 @@ exports.recordMarks = async (req, res) => {
 
     const pname = program.name;
     console.log(pname)
+    console.log(program, examSession)
 
     // Create new mark record
     const markRecord = new StudentMark({
