@@ -109,6 +109,7 @@ router.post('/', auth, authorize('admin', 'superadmin'), async (req, res) => {
     await examSession.save();
     res.status(201).json(examSession);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: error.message });
   }
 });
