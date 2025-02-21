@@ -13,7 +13,8 @@ exports.recordMarks = async (req, res) => {
       academicEngagement,
       midtermExam,
       endtermExam,
-      teacherComment
+      teacherComment,
+      program:prg,
     } = req.body;
 
     // Get exam session details
@@ -29,7 +30,7 @@ exports.recordMarks = async (req, res) => {
     }
 
     // Find matching program from exam session programs
-    const program = examSession.programs.find(p => p.name === student.program);
+    const program = Program.findById(prg);
     if (!program) {
       return res.status(404).json({ message: 'Program not found for this student in exam session' });
     }
