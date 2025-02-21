@@ -74,12 +74,12 @@ exports.getStudentMarks = async (req, res) => {
     // Find marks with the specified filters
     const marks = await StudentMark.find({
       student: studentId,
-      term
+      // term
     })
-    .populate({
-      path: 'examSession',
-      match: { academicYear }
-    })
+    // .populate({
+    //   path: 'examSession',
+    //   match: { academicYear }
+    // })
     .populate('subject');
 
     // Filter out marks where the examSession does not match the academicYear
