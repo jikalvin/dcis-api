@@ -104,7 +104,7 @@ router.post('/', auth, authorize('admin', 'superadmin'), async (req, res) => {
       submissionFrequency,
       session: session,
       sessionType,
-      academicYear: session,
+      academicYear: session[0],
     });
 
     await examSession.save();
