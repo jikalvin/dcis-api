@@ -40,6 +40,7 @@ exports.recordMarks = async (req, res) => {
       student: studentId,
       examSession: examSessionId,
       subject: subjectId,
+      programLevel: program.name.toLowerCase(),
       program: program._id,
       sessionType: examSession.sessionType,
       academicYear: examSession.academicYear,
