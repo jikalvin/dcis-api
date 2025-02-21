@@ -35,19 +35,20 @@ exports.recordMarks = async (req, res) => {
       return res.status(404).json({ message: 'Program not found for this student in exam session' });
     }
 
-    const pname = program.name;
-    console.log(pname)
-    // console.log(program, examSession)
+    // Check if academicYear matches
+    if (examSession.academicYear !== req.body.academicYear) {
+      return res.status(400).json({ message: 'Academic year does not match with the exam session' });
+    }
 
     // Create new mark record
     const markRecord = new StudentMark({
       student: studentId,
       examSession: examSessionId,
       subject: subjectId,
-      programLevel: pname.toLowerCase(),
+      programLevel: program.name.toLowerCase(),
       program: program._id,
       sessionType: examSession.sessionType,
-      academicYear: examSession.session || examSession.academicYear,
+      academicYear: examSession.academicYear,
       term: examSession.term,
       teacherComment,
       ...(program.name === 'Kindergarten' && { grade }),
