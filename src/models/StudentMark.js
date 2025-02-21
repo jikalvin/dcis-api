@@ -65,7 +65,6 @@ const studentMarkSchema = new mongoose.Schema({
   },
   academicYear: {
     type: String,
-    required: true
   },
   term: {
     type: String,
