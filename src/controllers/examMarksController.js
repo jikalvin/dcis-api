@@ -37,7 +37,7 @@ exports.recordMarks = async (req, res) => {
 
     const pname = program.name;
     console.log(pname)
-    console.log(program, examSession)
+    // console.log(program, examSession)
 
     // Create new mark record
     const markRecord = new StudentMark({
@@ -47,7 +47,7 @@ exports.recordMarks = async (req, res) => {
       programLevel: pname.toLowerCase(),
       program: program._id,
       sessionType: examSession.sessionType,
-      academicYear: examSession.academicYear,
+      academicYear: examSession.session || examSession.academicYear,
       term: examSession.term,
       teacherComment,
       ...(program.name === 'Kindergarten' && { grade }),
