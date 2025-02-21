@@ -80,8 +80,7 @@ exports.getStudentMarks = async (req, res) => {
       path: 'examSession',
       match: { academicYear }
     })
-    .populate('subject')
-    .populate('program');
+    .populate('subject');
 
     // Filter out marks where the examSession does not match the academicYear
     const filteredMarks = marks.filter(mark => mark.examSession);
