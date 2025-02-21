@@ -35,20 +35,19 @@ exports.recordMarks = async (req, res) => {
       return res.status(404).json({ message: 'Program not found for this student in exam session' });
     }
 
-    // Check if academicYear matches
-    if (examSession.academicYear !== req.body.academicYear) {
-      return res.status(400).json({ message: 'Academic year does not match with the exam session' });
-    }
+    const pname = program.name;
+    console.log(pname)
+    // console.log(program, examSession)
 
     // Create new mark record
     const markRecord = new StudentMark({
       student: studentId,
       examSession: examSessionId,
       subject: subjectId,
-      programLevel: program.name.toLowerCase(),
+      programLevel: pname.toLowerCase(),
       program: program._id,
       sessionType: examSession.sessionType,
-      academicYear: examSession.academicYear,
+      academicYear: examSession.session || examSession.academicYear,
       term: examSession.term,
       teacherComment,
       ...(program.name === 'Kindergarten' && { grade }),
@@ -71,17 +70,23 @@ exports.recordMarks = async (req, res) => {
 exports.getStudentMarks = async (req, res) => {
   try {
     const { studentId, academicYear, term } = req.query;
-    
+
+    // Find marks with the specified filters
     const marks = await StudentMark.find({
       student: studentId,
-      academicYear,
       term
     })
+    .populate({
+      path: 'examSession',
+      match: { academicYear }
+    })
     .populate('subject')
-    .populate('examSession')
     .populate('program');
-    
-    res.status(200).json(marks);
+
+    // Filter out marks where the examSession does not match the academicYear
+    const filteredMarks = marks.filter(mark => mark.examSession);
+
+    res.status(200).json(filteredMarks);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
