@@ -35,12 +35,15 @@ exports.recordMarks = async (req, res) => {
       return res.status(404).json({ message: 'Program not found for this student in exam session' });
     }
 
+    const pname = program.name;
+    console.log(pname)
+
     // Create new mark record
     const markRecord = new StudentMark({
       student: studentId,
       examSession: examSessionId,
       subject: subjectId,
-      programLevel: program.name.toLowerCase(),
+      programLevel: pname.toLowerCase(),
       program: program._id,
       sessionType: examSession.sessionType,
       academicYear: examSession.academicYear,
