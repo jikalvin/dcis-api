@@ -74,13 +74,14 @@ exports.getStudentMarks = async (req, res) => {
     // Find marks with the specified filters
     const marks = await StudentMark.find({
       student: studentId,
-      // term
+      term
     })
     // .populate({
     //   path: 'examSession',
     //   match: { academicYear }
     // })
-    .populate('subject');
+    .populate('subject')
+    // .populate('program');
 
     // Filter out marks where the examSession does not match the academicYear
     const filteredMarks = marks.filter(mark => mark.examSession);
@@ -115,6 +116,15 @@ exports.updateMarks = async (req, res) => {
     
     await mark.save();
     res.status(200).json(mark);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.deleteAllMarks = async (req, res) => {
+  try {
+    await StudentMark.deleteMany({});
+    res.status(200).json({ message: 'All student marks deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

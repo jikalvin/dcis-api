@@ -6,5 +6,6 @@ const { auth, authorize } = require('../middleware/auth');
 router.post('/record', auth, authorize('superadmin', 'admin', 'teacher'), examMarksController.recordMarks);
 router.get('/student', auth, examMarksController.getStudentMarks);
 router.put('/:id', auth, examMarksController.updateMarks);
+router.delete('/marks', auth, authorize('admin', 'superadmin'), examMarksController.deleteAllMarks);
 
 module.exports = router; 
