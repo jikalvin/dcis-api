@@ -97,13 +97,25 @@ exports.updateMarks = async (req, res) => {
     const markId = req.params.id;
     const updates = req.body;
     
-    const mark = await StudentMark.findById(markId).populate('program');
+    const mark = await StudentMark.findById(markId).populate({
+      path: 'student',
+      populate: {
+        path: 'class',
+        model: 'Class'
+      }
+    });
+
+    const program = await Program.findById(mark.student.class.program);
+    if (!program) {
+      return res.status(404).json({ message: 'Program not found' });
+    }
+
     if (!mark) {
       return res.status(404).json({ message: 'Mark record not found' });
     }
 
     // Validate updates based on program and session type
-    if (mark.program.name === 'Kindergarten' && updates.grade) {
+    if (program.name === 'Kindergarten' && updates.grade) {
       mark.grade = updates.grade;
     } else if (mark.sessionType === 'midterm') {
       if (updates.academicEngagement) mark.academicEngagement = updates.academicEngagement;
