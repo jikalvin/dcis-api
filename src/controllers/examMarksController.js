@@ -74,7 +74,7 @@ exports.getStudentMarks = async (req, res) => {
     // Find marks with the specified filters
     const marks = await StudentMark.find({
       student: studentId,
-      // term
+      term
     })
     // .populate({
     //   path: 'examSession',
