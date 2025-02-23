@@ -206,7 +206,7 @@ router.get('/student/:studentId', auth, async (req, res) => {
  *       500:
  *         description: Server error
  */
-router.post('/payment', auth, authorize('superadmin','admin'), async (req, res) => {
+router.post('/payment', auth, async (req, res) => {
   try {
     const { studentId, tuitionId, amount, installmentName, paymentMethod } = req.body;
     
