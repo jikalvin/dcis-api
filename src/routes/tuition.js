@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { TuitionFee, StudentTuition } = require('../models/TuitionFee');
+const Student = require('../models/Student');
 const { auth, authorize } = require('../middleware/auth');
 
 /**
@@ -72,7 +73,7 @@ const { auth, authorize } = require('../middleware/auth');
  *       500:
  *         description: Server error
  */
-router.post('/', auth, authorize('superadmin','admin'), async (req, res) => {
+router.post('/', auth, authorize('superadmin', 'admin'), async (req, res) => {
   try {
     const tuitionFee = new TuitionFee(req.body);
     await tuitionFee.save();
@@ -103,14 +104,80 @@ router.post('/', auth, authorize('superadmin','admin'), async (req, res) => {
  *       500:
  *         description: Server error
  */
-router.get('/', auth, authorize('superadmin','admin'), async (req, res) => {
+router.get('/', auth, authorize('superadmin', 'admin'), async (req, res) => {
   try {
     const tuitionFees = await TuitionFee.find({
       status: { $ne: 'Archived' }
     })
-    .populate('program')
-    .populate('class');
+      .populate('program')
+      .populate('class');
     res.status(200).json(tuitionFees);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * @swagger
+ * /api/tuition/initialize:
+ *   post:
+ *     tags: [Tuition]
+ *     summary: Initialize student tuition records
+ *     description: Initialize student tuition records for multiple students based on classes specified in the tuition fee structure
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - academicYear
+ *               - tuitionFeeId
+ *             properties:
+ *               academicYear:
+ *                 type: string
+ *               tuitionFeeId:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Student tuition records initialized successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/StudentTuition'
+ *       500:
+ *         description: Server error
+ */
+router.post('/initialize', auth, authorize('superadmin', 'admin'), async (req, res) => {
+  try {
+    const { academicYear, tuitionFeeId } = req.body;
+
+    const tuitionFee = await TuitionFee.findById(tuitionFeeId).populate('class');
+    if (!tuitionFee) {
+      return res.status(404).json({ error: 'Tuition fee structure not found' });
+    }
+
+    const studentIds = await Student.find({ class: { $in: tuitionFee.class } }).select('_id');
+
+    const studentTuitions = await Promise.all(studentIds.map(async (student) => {
+      const studentTuition = new StudentTuition({
+        student: student._id,
+        tuitionFee: tuitionFeeId,
+        academicYear,
+        totalAmount: tuitionFee.baseAmount,
+        balance: tuitionFee.baseAmount,
+        status: 'Unpaid'
+      });
+
+      await studentTuition.save();
+      return studentTuition;
+    }));
+
+    res.status(201).json(studentTuitions);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -149,13 +216,13 @@ router.get('/student/:studentId', auth, async (req, res) => {
       student: req.params.studentId,
       academicYear: req.query.academicYear
     })
-    .populate('tuitionFee')
-    .populate('student', 'name email class');
-    
+      .populate('tuitionFee')
+      .populate('student', 'name email class');
+
     if (!studentTuition) {
       return res.status(404).json({ error: 'Tuition record not found' });
     }
-    
+
     res.status(200).json(studentTuition);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -209,16 +276,16 @@ router.get('/student/:studentId', auth, async (req, res) => {
 router.post('/payment', auth, async (req, res) => {
   try {
     const { studentId, tuitionId, amount, installmentName, paymentMethod } = req.body;
-    
+
     const studentTuition = await StudentTuition.findOne({
       student: studentId,
       tuitionFee: tuitionId
     });
-    
+
     if (!studentTuition) {
       return res.status(404).json({ error: 'Tuition record not found' });
     }
-    
+
     studentTuition.payments.push({
       amount,
       installmentName,
@@ -227,13 +294,95 @@ router.post('/payment', auth, async (req, res) => {
       receivedBy: req.user._id,
       status: 'Completed'
     });
-    
+
     studentTuition.paidAmount += amount;
     studentTuition.balance = studentTuition.totalAmount - studentTuition.paidAmount;
     studentTuition.status = studentTuition.balance <= 0 ? 'Paid' : 'PartiallyPaid';
-    
+
     await studentTuition.save();
-    
+
+    res.status(200).json(studentTuition);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * @swagger
+ * /api/tuition/payment/mtn:
+ *   post:
+ *     tags: [Tuition]
+ *     summary: Record tuition payment via MTN Mobile Money
+ *     description: Record a tuition payment via MTN Mobile Money
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - studentId
+ *               - tuitionId
+ *               - amount
+ *               - installmentName
+ *               - paymentMethod
+ *               - transactionId
+ *             properties:
+ *               studentId:
+ *                 type: string
+ *               tuitionId:
+ *                 type: string
+ *               amount:
+ *                 type: number
+ *               installmentName:
+ *                 type: string
+ *               paymentMethod:
+ *                 type: string
+ *               transactionId:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Tuition payment recorded successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/TuitionFee'
+ *       404:
+ *         description: Tuition record not found
+ *       500:
+ *         description: Server error
+ */
+router.post('/payment/mtn', auth, async (req, res) => {
+  try {
+    const { studentId, tuitionId, amount, installmentName, paymentMethod, transactionId } = req.body;
+
+    const studentTuition = await StudentTuition.findOne({
+      student: studentId,
+      tuitionFee: tuitionId
+    });
+
+    if (!studentTuition) {
+      return res.status(404).json({ error: 'Tuition record not found' });
+    }
+
+    studentTuition.payments.push({
+      amount,
+      installmentName,
+      paymentDate: new Date(),
+      paymentMethod,
+      transactionId,
+      receivedBy: req.user._id,
+      status: 'Completed'
+    });
+
+    studentTuition.paidAmount += amount;
+    studentTuition.balance = studentTuition.totalAmount - studentTuition.paidAmount;
+    studentTuition.status = studentTuition.balance <= 0 ? 'Paid' : 'PartiallyPaid';
+
+    await studentTuition.save();
+
     res.status(200).json(studentTuition);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -270,17 +419,17 @@ router.post('/payment', auth, async (req, res) => {
  *       500:
  *         description: Server error
  */
-router.post('/remind/:studentId', auth, authorize('superadmin','admin'), async (req, res) => {
+router.post('/remind/:studentId', auth, authorize('superadmin', 'admin'), async (req, res) => {
   try {
     const studentTuition = await StudentTuition.findOne({
       student: req.params.studentId,
       status: { $in: ['Unpaid', 'PartiallyPaid', 'Overdue'] }
     });
-    
+
     if (!studentTuition) {
       return res.status(404).json({ error: 'Tuition record not found' });
     }
-    
+
     // Create a notification for the reminder
     const notification = {
       title: 'Tuition Payment Reminder',
@@ -292,12 +441,12 @@ router.post('/remind/:studentId', auth, authorize('superadmin','admin'), async (
       targetUsers: [studentTuition.student],
       channels: ['Email', 'SMS']
     };
-    
+
     // TODO: Integrate with notification service
-    
+
     studentTuition.lastReminderSent = new Date();
     await studentTuition.save();
-    
+
     res.status(200).json({ message: 'Payment reminder sent successfully' });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -350,7 +499,7 @@ router.post('/remind/:studentId', auth, authorize('superadmin','admin'), async (
  *       500:
  *         description: Server error
  */
-router.get('/transactions', auth, authorize('superadmin','admin'), async (req, res) => {
+router.get('/transactions', auth, authorize('superadmin', 'admin'), async (req, res) => {
   try {
     const recentPayments = await StudentTuition.aggregate([
       { $unwind: '$payments' },
@@ -365,7 +514,7 @@ router.get('/transactions', auth, authorize('superadmin','admin'), async (req, r
         }
       }
     ]);
-    
+
     res.status(200).json(recentPayments);
   } catch (error) {
     res.status(500).json({ error: error.message });
